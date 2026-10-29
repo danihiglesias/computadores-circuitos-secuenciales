@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Circuitos secuenciales</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Lato:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: columna de lectura (68 ch) con el simulador a ancho completo; tema único claro del sistema Computadores */
+:root {
+  --papel:#f8f4ec; --papel-elevado:#ffffff; --papel-hundido:#efe8db; --piedra:#e3d9c8; --piedra-fuerte:#857869;
+  --tinta:#2a2420; --tinta-suave:#6b5f55;
+  --vitor:#a8192b; --vitor-suave:#f7dddc; --sobre-vitor:#ffffff;
+  --dorado:#d9a441; --dorado-texto:#8a5a0a; --dorado-suave:#fbeed2;
+  --centenario:#385e9d; --centenario-suave:#dde6f4; --sobre-centenario:#ffffff;
+  --correcto:#1f6f43; --correcto-suave:#dcefe2;
+  --incorrecto:var(--vitor); --incorrecto-suave:var(--vitor-suave);
+  --foco:var(--centenario);
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px; --space-8:64px;
+  --radius-sm:6px; --radius-md:12px; --radius-lg:20px; --radius-pill:999px;
+  --sombra-tarjeta:0 1px 2px rgba(42,36,32,.06), 0 4px 12px rgba(42,36,32,.06);
+  --font-display:"Bricolage Grotesque","Lato",system-ui,sans-serif;
+  --font-sans:"Lato",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+* { box-sizing:border-box; }
+body { background:var(--papel); color:var(--tinta); font-family:var(--font-sans); font-size:17px; line-height:27px; margin:0;
+  padding-block:var(--space-6) var(--space-8); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+.wrap { max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:var(--space-7); }
+.prosa { max-width:68ch; }
+.prosa p { margin:0 0 var(--space-4); }
+h1,h2,h3 { font-family:var(--font-display); text-wrap:balance; margin:0; }
+h1 { font-size:40px; line-height:44px; font-weight:700; letter-spacing:-.02em; margin:var(--space-2) 0 var(--space-4); }
+h2 { font-size:28px; line-height:34px; font-weight:600; letter-spacing:-.01em; margin-bottom:var(--space-4); display:inline-block; box-shadow:inset 0 -4px 0 var(--dorado); }
+h3 { font-size:20px; line-height:26px; font-weight:600; }
+.etiqueta { display:inline-flex; align-items:center; gap:var(--space-1); font-size:12px; line-height:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:2px var(--space-2); border-radius:var(--radius-pill); background:var(--vitor-suave); color:var(--vitor); }
+.etiqueta-neutra { background:var(--papel-hundido); color:var(--tinta-suave); }
+.cabecera { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+.cabecera img { width:40px; height:40px; }
+code { font-family:var(--font-mono); font-size:15px; background:var(--papel-hundido); padding:1px 6px; border-radius:var(--radius-sm); }
+
+.nota { display:grid; grid-template-columns:20px 1fr; gap:var(--space-3); padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-elevado); border:1px solid var(--piedra); font-size:15px; line-height:22px; max-width:68ch; }
+.nota svg { width:20px; height:20px; margin-top:1px; }
+.nota b { display:block; margin-bottom:2px; }
+.nota-idea { background:var(--centenario-suave); border-color:var(--centenario-suave); color:var(--centenario); }
+.nota-cuidado { background:var(--dorado-suave); border-color:var(--dorado-suave); color:var(--dorado-texto); }
+.nota-correcto { background:var(--correcto-suave); border-color:var(--correcto-suave); color:var(--correcto); }
+.nota-incorrecto { background:var(--incorrecto-suave); border-color:var(--incorrecto-suave); color:var(--incorrecto); }
+.nota .cuerpo { color:var(--tinta); }
+
+.panel { background:var(--papel-elevado); border-radius:var(--radius-lg); box-shadow:var(--sombra-tarjeta); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-5); }
+.grid2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-5); align-items:start; }
+@media (max-width:720px) { .grid2 { grid-template-columns:1fr; } }
+.col { display:flex; flex-direction:column; gap:var(--space-4); min-width:0; }
+.boton { font:700 15px/20px var(--font-sans); padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; display:inline-flex; align-items:center; gap:var(--space-2); }
+.boton-discreto { background:transparent; border-color:transparent; color:var(--vitor); }
+.boton:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.boton:hover { border-color:var(--vitor); }
+.fila { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; }
+.subt { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); }
+
+/* conjuntos I, O, S */
+.conjuntos { display:grid; gap:var(--space-3); }
+.conjunto { display:grid; grid-template-columns:56px 1fr; gap:var(--space-3); align-items:center; padding:var(--space-3) var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.conjunto .letra { font:600 30px/1 var(--font-display); font-style:italic; text-align:center; }
+.conjunto .letra small { display:block; font:700 11px/14px var(--font-sans); font-style:normal; letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); margin-top:4px; }
+.elementos { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; font-family:var(--font-mono); font-size:15px; }
+.elementos .llave { font-size:24px; color:var(--tinta-suave); }
+.el { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:var(--radius-pill); background:var(--papel-hundido); }
+.el svg { width:20px; height:20px; flex:none; }
+
+/* gestos */
+.gesto { font:700 13px/1 var(--font-mono); padding:3px 7px; border-radius:var(--radius-sm); display:inline-block; min-width:28px; text-align:center; }
+.g-R { background:var(--vitor-suave); color:var(--vitor); }
+.g-Ll { background:var(--centenario-suave); color:var(--centenario); }
+.g-0 { background:var(--correcto-suave); color:var(--correcto); }
+
+/* simulador */
+.nino { display:grid; grid-template-columns:auto 1fr; gap:var(--space-4); align-items:center; padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.cara { width:88px; height:88px; }
+.cara circle.c { fill:var(--dorado-suave); stroke:var(--tinta); stroke-width:1.4; }
+.cara .r { fill:none; stroke:var(--tinta); stroke-width:1.6; stroke-linecap:round; }
+.cara .o { fill:var(--tinta); }
+.cara .lagrima { fill:var(--centenario); }
+.nino .estado-txt { font:600 24px/30px var(--font-display); }
+.nino .estado-txt em { font-style:normal; color:var(--tinta-suave); font-size:15px; font-family:var(--font-sans); font-weight:400; display:block; line-height:20px; }
+.salida-grande { margin-top:var(--space-2); display:flex; align-items:center; gap:var(--space-2); font-size:15px; }
+.salida-grande .gesto { font-size:17px; padding:6px 12px; }
+.entradas .boton svg { width:22px; height:22px; }
+
+.tabla-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+th, td { padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--piedra); text-align:left; white-space:nowrap; }
+thead th { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); background:var(--papel-hundido); }
+td.t { font-family:var(--font-mono); color:var(--tinta-suave); font-variant-numeric:tabular-nums; }
+tr.nuevo td { background:var(--dorado-suave); }
+tr.choque td.ent { box-shadow:inset 3px 0 0 var(--vitor); }
+.transicion td, .transicion th { text-align:center; }
+.transicion tbody th { text-align:left; font-family:var(--font-display); font-size:16px; font-weight:600; background:var(--papel-hundido); }
+.transicion td.activa { background:var(--dorado); }
+.transicion td .sig { display:block; font-size:14px; color:var(--tinta-suave); }
+.transicion td.activa .sig { color:var(--tinta); }
+.transicion tr.fila-actual th { box-shadow:inset 3px 0 0 var(--vitor); }
+
+/* diagrama de bloques */
+.diagrama { overflow-x:auto; }
+.diagrama svg { display:block; width:100%; min-width:520px; height:auto; }
+.d-caja { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.d-mem { fill:var(--dorado-suave); stroke:var(--dorado-texto); stroke-width:1.5; }
+.d-linea { fill:none; stroke:var(--tinta); stroke-width:1.5; }
+.d-realim { fill:none; stroke:var(--vitor); stroke-width:1.8; }
+.d-txt { fill:var(--tinta); font-family:var(--font-display); font-size:17px; font-weight:600; }
+.d-sub { fill:var(--tinta-suave); font-family:var(--font-sans); font-size:13px; }
+.d-var { fill:var(--tinta); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-var-v { fill:var(--vitor); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-flecha { fill:var(--tinta); } .d-flecha-v { fill:var(--vitor); }
+
+/* diagrama de estados */
+#diag-estados { min-width:560px; }
+.arista { fill:none; stroke:var(--tinta-suave); stroke-width:1.6; }
+.e-lentejas { stroke-dasharray:none; } .e-bici { stroke-dasharray:8 6; } .e-futbol { stroke-dasharray:2 5; stroke-linecap:round; }
+.leyenda path { fill:none; stroke:var(--tinta-suave); stroke-width:1.8; }
+.leyenda path.e-act { stroke:var(--vitor); stroke-width:3; }
+.arista.activa { stroke:var(--vitor); stroke-width:3; }
+.etq { font-family:var(--font-mono); font-size:13px; font-weight:500; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:4px; stroke-linejoin:round; }
+.etq.activa { font-weight:700; }
+.etq .o-R { fill:var(--vitor); } .etq .o-Ll { fill:var(--centenario); } .etq .o-0 { fill:var(--correcto); }
+.nodo { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.nodo.actual { fill:var(--dorado-suave); stroke:var(--vitor); stroke-width:3; }
+.nodo-txt { font-family:var(--font-display); font-size:15px; font-weight:600; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:5px; stroke-linejoin:round; }
+.punta { fill:var(--tinta-suave); } .punta-v { fill:var(--vitor); }
+.ley { display:inline-flex; align-items:center; gap:6px; font-size:14px; }
+.ley svg { width:40px; height:8px; }
+.formula { font-family:var(--font-mono); font-size:16px; background:var(--papel-hundido); border-radius:var(--radius-sm); padding:var(--space-3) var(--space-4); display:grid; gap:4px; }
+.formula .v { color:var(--vitor); font-weight:600; }
+
+.comparativa { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); max-width:68ch; }
+@media (max-width:600px) { .comparativa { grid-template-columns:1fr; } }
+.tarjeta { border:1px solid var(--piedra); border-radius:var(--radius-md); padding:var(--space-4); background:var(--papel-elevado); font-size:15px; line-height:22px; }
+.tarjeta h3 { margin-bottom:var(--space-2); }
+.tarjeta ul { margin:0; padding-left:18px; } .tarjeta li { margin-bottom:4px; }
+
+.reto { display:grid; gap:var(--space-4); }
+.pregunta { display:grid; gap:var(--space-3); padding:var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.opciones { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+.opciones .boton[aria-pressed="true"] { background:var(--centenario); border-color:var(--centenario); color:var(--sobre-centenario); }
+.pie { font-size:13px; line-height:18px; color:var(--tinta-suave); }
+.nav-leccion { max-width:960px; margin:0 auto var(--space-5); display:flex; justify-content:space-between; gap:var(--space-3); font-size:14px; flex-wrap:wrap; color:var(--tinta-suave); }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+@keyframes aparece { from { background:var(--dorado); } }
+tr.nuevo td { animation:aparece 600ms ease-out; }
+</style>
+</head>
+<body>
+
+<nav class="nav-leccion" aria-label="Situación en el tema"><span>Tema 6 · Circuitos secuenciales</span><span>6.1 Conceptos básicos</span></nav>
+<div class="wrap">
+<header class="prosa">
+  <div class="cabecera">
+    <img alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%236b5f55'%3E%3Crect x='18' y='2' width='4' height='8' rx='1'/%3E%3Crect x='30' y='2' width='4' height='8' rx='1'/%3E%3Crect x='42' y='2' width='4' height='8' rx='1'/%3E%3Crect x='18' y='54' width='4' height='8' rx='1'/%3E%3Crect x='30' y='54' width='4' height='8' rx='1'/%3E%3Crect x='42' y='54' width='4' height='8' rx='1'/%3E%3Crect x='2' y='18' width='8' height='4' rx='1'/%3E%3Crect x='2' y='30' width='8' height='4' rx='1'/%3E%3Crect x='2' y='42' width='8' height='4' rx='1'/%3E%3Crect x='54' y='18' width='8' height='4' rx='1'/%3E%3Crect x='54' y='30' width='8' height='4' rx='1'/%3E%3Crect x='54' y='42' width='8' height='4' rx='1'/%3E%3C/g%3E%3Crect x='8' y='8' width='48' height='48' rx='12' fill='%23a8192b'/%3E%3Crect x='16' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='25' y='24' width='7' height='16' rx='2' fill='%23f7dddc' fill-opacity='.35'/%3E%3Crect x='34' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='43' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3C/svg%3E">
+    <span class="etiqueta">Computadores · Tema 6</span>
+  </div>
+  <h1>Circuitos secuenciales: conceptos básicos</h1>
+  <p>En un circuito combinacional, la salida depende solo de lo que hay en la entrada en ese instante. Los <strong>circuitos secuenciales</strong> son aquellos en los que <strong>la salida no depende solamente del valor de la entrada</strong>. Con la misma entrada, en momentos diferentes, puede haber salidas diferentes.</p>
+  <p>Para explicarlo aparece un concepto nuevo: el <strong>estado del circuito</strong>. Si al valor de la entrada le añadimos el valor del estado, la salida sí queda perfectamente determinada.</p>
+</header>
+
+<section class="prosa">
+  <h2>Un niño como circuito</h2>
+  <p>Tomemos como ejemplo un niño. Las entradas (<i>I</i>) son las actuaciones que podemos tener sobre él; las salidas (<i>O</i>), los gestos que produce; y el estado (<i>S</i>), su estado de ánimo.</p>
+  <div class="conjuntos" id="conjuntos"></div>
+</section>
+
+<section>
+  <h2>Pruébalo</h2>
+  <div class="prosa"><p>Elige qué le haces al niño y mira qué gesto produce. Fíjate en la historia: ya le hemos dado lentejas dos veces y no ha reaccionado igual. La entrada era la misma; lo que había cambiado era su estado de ánimo.</p></div>
+  <div class="panel">
+    <div class="grid2">
+      <div class="col">
+        <div class="nino" aria-live="polite">
+          <svg class="cara" id="cara" viewBox="0 0 48 48" aria-hidden="true"></svg>
+          <div>
+            <div class="estado-txt" id="estado-txt"></div>
+            <div class="salida-grande" id="salida-txt"></div>
+          </div>
+        </div>
+        <div>
+          <div class="subt" style="margin-bottom:var(--space-2)">Entrada</div>
+          <div class="fila entradas" id="entradas"></div>
+        </div>
+        <div id="aviso"></div>
+      </div>
+      <div class="col">
+        <div class="subt">Historia</div>
+        <div class="tabla-wrap">
+          <table>
+            <thead><tr><th>t</th><th>Estado</th><th>Entrada</th><th>Salida</th><th>Estado siguiente</th></tr></thead>
+            <tbody id="historia"></tbody>
+          </table>
+        </div>
+        <div class="fila"><button class="boton boton-discreto" id="b-reset">Reiniciar con el niño normal</button></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="subt">Tabla de comportamiento · estado siguiente y salida para cada estado y entrada</div>
+      <div class="tabla-wrap">
+        <table class="transicion" id="transicion"></table>
+      </div>
+      <p class="pie">Para saber la salida hay que mirar la fila (el estado) y la columna (la entrada) a la vez.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Diagrama de estados</h2>
+  <div class="prosa"><p>La misma información se puede dibujar como un <strong>diagrama de estados</strong>. Cada círculo es un estado de ánimo. Cada flecha es una <strong>transición</strong>: indica a qué estado pasa el niño cuando recibe un estímulo (la <strong>entrada</strong>) y qué gesto produce al hacerlo (la <strong>salida</strong>). Cada flecha se etiqueta como <code>entrada / salida</code>.</p></div>
+  <div class="panel">
+    <div class="diagrama">
+      <svg id="diag-estados" viewBox="0 0 640 470" role="img" aria-label="Diagrama de estados del niño con tres estados (normal, triste y feliz) y nueve transiciones etiquetadas como entrada / salida."></svg>
+    </div>
+    <div class="fila leyenda">
+      <span class="subt">Trazo según la entrada</span>
+      <span class="ley"><svg viewBox="0 0 40 8" aria-hidden="true"><path class="e-lentejas" d="M2 4H38"/></svg>lentejas</span>
+      <span class="ley"><svg viewBox="0 0 40 8" aria-hidden="true"><path class="e-bici" d="M2 4H38"/></svg>bicicleta</span>
+      <span class="ley"><svg viewBox="0 0 40 8" aria-hidden="true"><path class="e-futbol" d="M2 4H38"/></svg>fútbol</span>
+      <span class="ley"><svg viewBox="0 0 40 8" aria-hidden="true"><path class="e-act" d="M2 4H38"/></svg>última transición</span>
+    </div>
+  </div>
+  <div class="prosa" style="margin-top:var(--space-5)">
+    <div class="nota nota-idea">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/></svg>
+      <div><b>Autómata finito</b><div class="cuerpo">Un sistema con un número finito de estados, entradas y salidas, descrito por sus transiciones, se conoce como un <strong>autómata finito</strong>. Se estudiará de un modo más formal más adelante en la carrera.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Del niño al circuito</h2>
+  <p>Un circuito secuencial se organiza igual. Una parte combinacional calcula la salida y el estado siguiente a partir de la entrada y del estado actual. Una parte de memoria guarda ese estado para el siguiente instante. Es ese lazo de realimentación el que le da al circuito su «memoria».</p>
+  <div class="diagrama">
+    <svg viewBox="0 0 640 250" role="img" aria-label="Diagrama de bloques: la entrada I y el estado S entran en la lógica combinacional, que produce la salida O y el estado siguiente S+, guardado en la memoria y devuelto como S.">
+      <defs>
+        <marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-flecha" d="M0 0L10 5L0 10z"/></marker>
+        <marker id="flv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-flecha-v" d="M0 0L10 5L0 10z"/></marker>
+      </defs>
+      <rect class="d-caja" x="200" y="20" width="240" height="96" rx="12"/>
+      <text class="d-txt" x="320" y="62" text-anchor="middle">Lógica combinacional</text>
+      <text class="d-sub" x="320" y="86" text-anchor="middle">O = f(I, S) · S⁺ = g(I, S)</text>
+      <rect class="d-mem" x="240" y="164" width="160" height="64" rx="12"/>
+      <text class="d-txt" x="320" y="192" text-anchor="middle">Memoria</text>
+      <text class="d-sub" x="320" y="212" text-anchor="middle">guarda el estado</text>
+      <path class="d-linea" d="M40 50H198" marker-end="url(#fl)"/>
+      <text class="d-var" x="40" y="40">I entrada</text>
+      <path class="d-linea" d="M440 50H600" marker-end="url(#fl)"/>
+      <text class="d-var" x="520" y="40" text-anchor="middle">O salida</text>
+      <path class="d-realim" d="M440 92H500V196H402" marker-end="url(#flv)"/>
+      <text class="d-var-v" x="510" y="150">S⁺</text>
+      <path class="d-realim" d="M240 196H140V92H198" marker-end="url(#flv)"/>
+      <text class="d-var-v" x="110" y="150">S</text>
+    </svg>
+  </div>
+  <div class="formula" style="margin-top:var(--space-4)">
+    <div>salida            O  = f(I, <span class="v">S</span>)</div>
+    <div>estado siguiente  <span class="v">S⁺</span> = g(I, <span class="v">S</span>)</div>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Cara a cara</h2>
+  <div class="comparativa">
+    <div class="tarjeta">
+      <h3>Combinacional</h3>
+      <ul>
+        <li>La salida depende solo de la entrada actual: <code>O = f(I)</code>.</li>
+        <li>Misma entrada, siempre la misma salida.</li>
+        <li>No guarda nada del pasado.</li>
+        <li>Ejemplos: sumador, multiplexor, decodificador.</li>
+      </ul>
+    </div>
+    <div class="tarjeta">
+      <h3>Secuencial</h3>
+      <ul>
+        <li>La salida depende de la entrada y del estado: <code>O = f(I, S)</code>.</li>
+        <li>Misma entrada, salidas distintas según el momento.</li>
+        <li>Recuerda lo ocurrido a través del estado.</li>
+        <li>Ejemplos: biestable, registro, contador.</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:var(--space-4)"></p>
+  <div class="nota nota-idea">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/></svg>
+    <div><b>Idea</b><div class="cuerpo">El estado resume toda la historia que importa. No hace falta recordar todo lo que se le ha hecho al niño: basta con saber cómo está ahora para predecir cómo reaccionará.</div></div>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Compruébalo</h2>
+  <div class="reto" id="reto"></div>
+  <p class="pie">Las respuestas se corrigen en la página; nada se envía a ningún sitio.</p>
+</section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var ICONO = {
+    bici:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="16" r="3.5"/><circle cx="18.5" cy="16" r="3.5"/><path d="M5.5 16 9 9h7l2.5 7M9 9l3.5 7L16 9M8 6.5h3M15 6h2.5"/></svg>',
+    futbol:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8.2l3.2 2.3-1.2 3.8h-4l-1.2-3.8z" fill="currentColor"/><path d="M12 8.2V3.5M15.2 10.5l4.3-1.6M14 14.3l2.7 3.9M10 14.3l-2.7 3.9M8.8 10.5 4.5 8.9"/></svg>',
+    lentejas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11h18a9 9 0 0 1-18 0zM7 7c0-1.5 1-1.5 1-3M12 7c0-1.5 1-1.5 1-3M17 7c0-1.5 1-1.5 1-3"/></svg>'
+  };
+  var ENT = { bici:'bicicleta', futbol:'fútbol', lentejas:'lentejas' };
+  var EST = { feliz:'feliz', triste:'triste', normal:'normal' };
+  var SAL = { R:'reírse', Ll:'llorar', '0':'nada' };
+  // comportamiento: estado → entrada → [estado siguiente, salida]
+  // transiciones del diagrama de estados de la lección (6.1)
+  var T = {
+    normal: { bici:['feliz','R'],  futbol:['feliz','R'],  lentejas:['triste','Ll'] },
+    triste: { bici:['normal','0'], futbol:['feliz','0'],  lentejas:['triste','0'] },
+    feliz:  { bici:['normal','R'], futbol:['feliz','R'],  lentejas:['triste','Ll'] }
+  };
+  // geometría del diagrama: nodos y aristas (trazo, posición de la etiqueta)
+  var NODO = { normal:[320,80], triste:[120,360], feliz:[520,360] };
+  var ARISTA = [
+    { s:'triste', e:'bici',     d:'M100 325Q110 150 282 68',        l:[142,168,'end'] },
+    { s:'normal', e:'lentejas', d:'M296 112Q230 200 146 330',       l:[232,226,'start'] },
+    { s:'normal', e:'bici',     d:'M358 68Q530 150 540 325',        l:[502,170,'start'] },
+    { s:'normal', e:'futbol',   d:'M344 112Q410 200 494 330',       l:[424,226,'start'] },
+    { s:'feliz',  e:'bici',     d:'M482 348Q340 320 320 120',       l:[352,300,'end'] },
+    { s:'feliz',  e:'lentejas', d:'M481 372H159',                   l:[320,364,'middle'] },
+    { s:'triste', e:'futbol',   d:'M140 395Q320 470 500 395',       l:[320,454,'middle'] },
+    { s:'triste', e:'lentejas', d:'M84 343C20 310 20 420 88 384',   l:[56,446,'middle'] },
+    { s:'feliz',  e:'futbol',   d:'M556 343C620 310 620 420 552 384', l:[584,446,'middle'] }
+  ];
+  function diagrama(){
+    var u = sim.ultima, out = '<defs>'
+      + '<marker id="pt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="punta" d="M0 0L10 5L0 10z"/></marker>'
+      + '<marker id="ptv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path class="punta-v" d="M0 0L10 5L0 10z"/></marker></defs>';
+    ARISTA.forEach(function(a){
+      var act = u && u.s===a.s && u.e===a.e;
+      out += '<path class="arista e-'+a.e+(act?' activa':'')+'" d="'+a.d+'" marker-end="url(#'+(act?'ptv':'pt')+')"/>';
+    });
+    ARISTA.forEach(function(a){
+      var act = u && u.s===a.s && u.e===a.e, o = T[a.s][a.e][1];
+      out += '<text class="etq'+(act?' activa':'')+'" x="'+a.l[0]+'" y="'+a.l[1]+'" text-anchor="'+a.l[2]+'">'+ENT[a.e]+' / <tspan class="o-'+o+'">'+o+'</tspan></text>';
+    });
+    Object.keys(NODO).forEach(function(s){
+      var p = NODO[s];
+      out += '<circle class="nodo'+(s===sim.s?' actual':'')+'" cx="'+p[0]+'" cy="'+p[1]+'" r="40"/>'
+        + '<svg class="cara" x="'+(p[0]-28)+'" y="'+(p[1]-28)+'" width="56" height="56" viewBox="0 0 48 48">'+cara(s)+'</svg>'
+        + '<text class="nodo-txt" x="'+p[0]+'" y="'+(p[1]-50)+'" text-anchor="middle">'+EST[s]+'</text>';
+    });
+    $('diag-estados').innerHTML = out;
+  }
+  function cara(s){
+    var boca = s==='feliz' ? '<path class="r" d="M16 28q8 8 16 0"/>' : s==='triste' ? '<path class="r" d="M16 33q8-7 16 0"/>' : '<path class="r" d="M17 30h14"/>';
+    var cejas = s==='triste' ? '<path class="r" d="M14 17l5 2M34 17l-5 2"/>' : '';
+    var lag = s==='triste' ? '<path class="lagrima" d="M17 24q-2 4 0 5q2-1 0-5z"/>' : '';
+    return '<circle class="c" cx="24" cy="24" r="21"/><circle class="o" cx="17" cy="21" r="2.2"/><circle class="o" cx="31" cy="21" r="2.2"/>'+cejas+boca+lag;
+  }
+  function gesto(o){ return '<span class="gesto g-'+o+'">'+o+'</span>'; }
+
+  // conjuntos I, O, S
+  function caraMini(s){ return '<svg viewBox="0 0 48 48" class="cara" style="width:20px;height:20px" aria-hidden="true">'+cara(s)+'</svg>'; }
+  $('conjuntos').innerHTML =
+    '<div class="conjunto"><div class="letra">I<small>entradas</small></div><div class="elementos"><span class="llave">{</span>'+Object.keys(ENT).map(function(k){ return '<span class="el">'+ICONO[k]+ENT[k]+'</span>'; }).join('')+'<span class="llave">}</span></div></div>'
+  + '<div class="conjunto"><div class="letra">O<small>salidas</small></div><div class="elementos"><span class="llave">{</span>'+['R','Ll','0'].map(function(k){ return '<span class="el">'+gesto(k)+SAL[k]+'</span>'; }).join('')+'<span class="llave">}</span></div></div>'
+  + '<div class="conjunto"><div class="letra">S<small>estados</small></div><div class="elementos"><span class="llave">{</span>'+Object.keys(EST).map(function(k){ return '<span class="el">'+caraMini(k)+EST[k]+'</span>'; }).join('')+'<span class="llave">}</span></div></div>';
+
+  var sim;
+  function reset(conEjemplo){
+    sim = { s:'normal', hist:[], ultima:null };
+    if (conEjemplo) ['bici','lentejas','lentejas'].forEach(aplicar);
+    render();
+  }
+  function aplicar(e){
+    var r = T[sim.s][e];
+    sim.hist.push({ t:sim.hist.length, s:sim.s, e:e, o:r[1], sig:r[0] });
+    sim.ultima = { s:sim.s, e:e };
+    sim.s = r[0];
+  }
+  function render(){
+    diagrama();
+    $('cara').innerHTML = cara(sim.s);
+    $('estado-txt').innerHTML = '<em>Estado actual</em>'+EST[sim.s];
+    var h = sim.hist, u = h[h.length-1];
+    $('salida-txt').innerHTML = u ? 'Último gesto: '+gesto(u.o)+' '+SAL[u.o]+' tras '+ENT[u.e] : 'Aún no le has hecho nada.';
+    $('entradas').innerHTML = Object.keys(ENT).map(function(k){ return '<button class="boton" data-e="'+k+'">'+ICONO[k]+ENT[k]+'</button>'; }).join('');
+    // historia
+    var choque = null;
+    if (u) for (var i=0;i<h.length-1;i++) if (h[i].e===u.e && h[i].o!==u.o) { choque = h[i]; break; }
+    $('historia').innerHTML = h.map(function(x,i){
+      var cls = (i===h.length-1?'nuevo':'') + (choque && (x===choque || i===h.length-1) ? ' choque':'');
+      return '<tr class="'+cls+'"><td class="t">'+x.t+'</td><td>'+EST[x.s]+'</td><td class="ent">'+ENT[x.e]+'</td><td>'+gesto(x.o)+'</td><td>'+EST[x.sig]+'</td></tr>';
+    }).join('') || '<tr><td colspan="5" style="color:var(--tinta-suave)">Elige una entrada para empezar.</td></tr>';
+    $('aviso').innerHTML = choque
+      ? '<div class="nota nota-cuidado" role="status"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/></svg><div><b>Misma entrada, salida distinta</b><div class="cuerpo">En t = '+choque.t+' le diste '+ENT[u.e]+' y respondió '+gesto(choque.o)+'. Ahora, con la misma entrada, responde '+gesto(u.o)+'. La diferencia está en el estado: antes estaba '+EST[choque.s]+', ahora estaba '+EST[u.s]+'.</div></div></div>'
+      : '';
+    // tabla de comportamiento
+    $('transicion').innerHTML = '<thead><tr><th>Estado \\ Entrada</th>'+Object.keys(ENT).map(function(k){ return '<th>'+ENT[k]+'</th>'; }).join('')+'</tr></thead><tbody>'
+      + Object.keys(EST).map(function(s){
+          return '<tr class="'+(s===sim.s?'fila-actual':'')+'"><th scope="row">'+EST[s]+'</th>'+Object.keys(ENT).map(function(e){
+            var r = T[s][e], act = sim.ultima && sim.ultima.s===s && sim.ultima.e===e;
+            return '<td class="'+(act?'activa':'')+'">'+gesto(r[1])+'<span class="sig">→ '+EST[r[0]]+'</span></td>';
+          }).join('')+'</tr>';
+        }).join('')+'</tbody>';
+    document.querySelectorAll('#entradas .boton').forEach(function(b){
+      b.addEventListener('click', function(){ aplicar(b.dataset.e); render(); var nb = document.querySelector('#entradas [data-e="'+b.dataset.e+'"]'); if (nb) nb.focus(); });
+    });
+  }
+  $('b-reset').addEventListener('click', function(){ reset(false); });
+  reset(true);
+
+  var PREG = [
+    { q:'En un circuito <strong>combinacional</strong>, aplicamos la misma entrada en dos momentos distintos. ¿Qué ocurre con la salida?', ops:['Es siempre la misma','Puede ser distinta','Depende del estado'], ok:0, exp:'En un circuito combinacional la salida es función solo de la entrada actual, así que la misma entrada da siempre la misma salida.' },
+    { q:'El niño está <strong>triste</strong> y le damos la bicicleta. Según la tabla de comportamiento, ¿qué gesto produce?', ops:['Reírse (R)','Llorar (Ll)','Nada (0)'], ok:2, exp:'Fila «triste», columna «bicicleta»: salida 0 y pasa a estar normal. No se ríe todavía, pero mejora su estado de ánimo.' },
+    { q:'¿Qué hay que conocer, además de la entrada, para saber con certeza la salida de un circuito secuencial?', ops:['El tiempo transcurrido','El estado del circuito','Todas las entradas anteriores, una a una'], ok:1, exp:'Entrada más estado determinan la salida. El estado ya resume lo necesario de la historia, así que no hace falta guardar todas las entradas anteriores.' },
+    { q:'¿Qué parte de un circuito secuencial guarda el estado para el instante siguiente?', ops:['La lógica combinacional','La memoria','La salida'], ok:1, exp:'La lógica combinacional calcula; la memoria guarda el estado y lo realimenta a la entrada de la lógica.' }
+  ];
+  var R = $('reto');
+  PREG.forEach(function(p, i){
+    var div = document.createElement('div'); div.className = 'pregunta';
+    div.innerHTML = '<div><span class="etiqueta etiqueta-neutra">Pregunta '+(i+1)+'</span></div><div>'+p.q+'</div><div class="opciones" role="group" aria-label="Opciones de la pregunta '+(i+1)+'">'+p.ops.map(function(o,j){ return '<button class="boton" data-j="'+j+'" aria-pressed="false">'+o+'</button>'; }).join('')+'</div><div class="feedback"></div>';
+    R.appendChild(div);
+    div.querySelectorAll('.opciones .boton').forEach(function(b){
+      b.addEventListener('click', function(){
+        div.querySelectorAll('.opciones .boton').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+        b.setAttribute('aria-pressed','true');
+        var ok = +b.dataset.j === p.ok;
+        div.querySelector('.feedback').innerHTML = '<div class="nota '+(ok?'nota-correcto':'nota-incorrecto')+'" role="status">'
+          + (ok ? '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l4 4 10-9"/></svg>' : '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l10 10M15 5 5 15"/></svg>')
+          + '<div><b>'+(ok?'Correcto':'Incorrecto')+'</b><div class="cuerpo">'+p.exp+'</div></div></div>';
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
