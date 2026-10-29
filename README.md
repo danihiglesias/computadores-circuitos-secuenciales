@@ -12,3 +12,4 @@ Web: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
 | [circuitos-sincronos-reloj.html](circuitos-sincronos-reloj.html) | 6.1.2 · Circuitos síncronos y reloj: cronogramas, periodo y frecuencia |
 | [biestable-rs-simbolo-tabla.html](biestable-rs-simbolo-tabla.html) | 6.2.1 · Biestable RS: símbolo, tabla de verdad, puertas NOR, diagrama de estados y cronograma |
 | [biestable-rs-sincrono.html](biestable-rs-sincrono.html) | 6.2.1 · Biestable RS síncrono: activo en nivel alto y en flanco de subida |
+| [biestable-jk.html](biestable-jk.html) | 6.2.2 · Biestable JK: complemento, síntesis con RS y dos AND, cronograma |
