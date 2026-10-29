@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Biestable RS</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Lato:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+
+/* Layout: columna de lectura (68 ch) con el simulador a ancho completo; tema único claro del sistema Computadores */
+:root {
+  --papel:#f8f4ec; --papel-elevado:#ffffff; --papel-hundido:#efe8db; --piedra:#e3d9c8; --piedra-fuerte:#857869;
+  --tinta:#2a2420; --tinta-suave:#6b5f55;
+  --vitor:#a8192b; --vitor-suave:#f7dddc; --sobre-vitor:#ffffff;
+  --dorado:#d9a441; --dorado-texto:#8a5a0a; --dorado-suave:#fbeed2;
+  --centenario:#385e9d; --centenario-suave:#dde6f4; --sobre-centenario:#ffffff;
+  --correcto:#1f6f43; --correcto-suave:#dcefe2;
+  --incorrecto:var(--vitor); --incorrecto-suave:var(--vitor-suave);
+  --foco:var(--centenario);
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px; --space-8:64px;
+  --radius-sm:6px; --radius-md:12px; --radius-lg:20px; --radius-pill:999px;
+  --sombra-tarjeta:0 1px 2px rgba(42,36,32,.06), 0 4px 12px rgba(42,36,32,.06);
+  --font-display:"Bricolage Grotesque","Lato",system-ui,sans-serif;
+  --font-sans:"Lato",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+* { box-sizing:border-box; }
+body { background:var(--papel); color:var(--tinta); font-family:var(--font-sans); font-size:17px; line-height:27px; margin:0;
+  padding-block:var(--space-6) var(--space-8); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+.wrap { max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:var(--space-7); }
+.prosa { max-width:68ch; }
+.prosa p { margin:0 0 var(--space-4); }
+h1,h2,h3 { font-family:var(--font-display); text-wrap:balance; margin:0; }
+h1 { font-size:40px; line-height:44px; font-weight:700; letter-spacing:-.02em; margin:var(--space-2) 0 var(--space-4); }
+h2 { font-size:28px; line-height:34px; font-weight:600; letter-spacing:-.01em; margin-bottom:var(--space-4); display:inline-block; box-shadow:inset 0 -4px 0 var(--dorado); }
+h3 { font-size:20px; line-height:26px; font-weight:600; }
+.etiqueta { display:inline-flex; align-items:center; gap:var(--space-1); font-size:12px; line-height:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:2px var(--space-2); border-radius:var(--radius-pill); background:var(--vitor-suave); color:var(--vitor); }
+.etiqueta-neutra { background:var(--papel-hundido); color:var(--tinta-suave); }
+.cabecera { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+.cabecera img { width:40px; height:40px; }
+code { font-family:var(--font-mono); font-size:15px; background:var(--papel-hundido); padding:1px 6px; border-radius:var(--radius-sm); }
+
+.nota { display:grid; grid-template-columns:20px 1fr; gap:var(--space-3); padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-elevado); border:1px solid var(--piedra); font-size:15px; line-height:22px; max-width:68ch; }
+.nota svg { width:20px; height:20px; margin-top:1px; }
+.nota b { display:block; margin-bottom:2px; }
+.nota-idea { background:var(--centenario-suave); border-color:var(--centenario-suave); color:var(--centenario); }
+.nota-cuidado { background:var(--dorado-suave); border-color:var(--dorado-suave); color:var(--dorado-texto); }
+.nota-correcto { background:var(--correcto-suave); border-color:var(--correcto-suave); color:var(--correcto); }
+.nota-incorrecto { background:var(--incorrecto-suave); border-color:var(--incorrecto-suave); color:var(--incorrecto); }
+.nota .cuerpo { color:var(--tinta); }
+
+.panel { background:var(--papel-elevado); border-radius:var(--radius-lg); box-shadow:var(--sombra-tarjeta); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-5); }
+.grid2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-5); align-items:start; }
+@media (max-width:720px) { .grid2 { grid-template-columns:1fr; } }
+.col { display:flex; flex-direction:column; gap:var(--space-4); min-width:0; }
+.boton { font:700 15px/20px var(--font-sans); padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; display:inline-flex; align-items:center; gap:var(--space-2); }
+.boton-discreto { background:transparent; border-color:transparent; color:var(--vitor); }
+.boton:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.boton:hover { border-color:var(--vitor); }
+.fila { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; }
+.subt { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); }
+
+/* conjuntos I, O, S */
+.conjuntos { display:grid; gap:var(--space-3); }
+.conjunto { display:grid; grid-template-columns:56px 1fr; gap:var(--space-3); align-items:center; padding:var(--space-3) var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.conjunto .letra { font:600 30px/1 var(--font-display); font-style:italic; text-align:center; }
+.conjunto .letra small { display:block; font:700 11px/14px var(--font-sans); font-style:normal; letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); margin-top:4px; }
+.elementos { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; font-family:var(--font-mono); font-size:15px; }
+.elementos .llave { font-size:24px; color:var(--tinta-suave); }
+.el { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:var(--radius-pill); background:var(--papel-hundido); }
+.el svg { width:20px; height:20px; flex:none; }
+
+/* gestos */
+.gesto { font:700 13px/1 var(--font-mono); padding:3px 7px; border-radius:var(--radius-sm); display:inline-block; min-width:28px; text-align:center; }
+.g-R { background:var(--vitor-suave); color:var(--vitor); }
+.g-Ll { background:var(--centenario-suave); color:var(--centenario); }
+.g-0 { background:var(--correcto-suave); color:var(--correcto); }
+
+/* simulador */
+.nino { display:grid; grid-template-columns:auto 1fr; gap:var(--space-4); align-items:center; padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.cara { width:88px; height:88px; }
+.cara circle.c { fill:var(--dorado-suave); stroke:var(--tinta); stroke-width:1.4; }
+.cara .r { fill:none; stroke:var(--tinta); stroke-width:1.6; stroke-linecap:round; }
+.cara .o { fill:var(--tinta); }
+.cara .lagrima { fill:var(--centenario); }
+.nino .estado-txt { font:600 24px/30px var(--font-display); }
+.nino .estado-txt em { font-style:normal; color:var(--tinta-suave); font-size:15px; font-family:var(--font-sans); font-weight:400; display:block; line-height:20px; }
+.salida-grande { margin-top:var(--space-2); display:flex; align-items:center; gap:var(--space-2); font-size:15px; }
+.salida-grande .gesto { font-size:17px; padding:6px 12px; }
+.entradas .boton svg { width:22px; height:22px; }
+
+.tabla-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+th, td { padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--piedra); text-align:left; white-space:nowrap; }
+thead th { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); background:var(--papel-hundido); }
+td.t { font-family:var(--font-mono); color:var(--tinta-suave); font-variant-numeric:tabular-nums; }
+tr.nuevo td { background:var(--dorado-suave); }
+tr.choque td.ent { box-shadow:inset 3px 0 0 var(--vitor); }
+.transicion td, .transicion th { text-align:center; }
+.transicion tbody th { text-align:left; font-family:var(--font-display); font-size:16px; font-weight:600; background:var(--papel-hundido); }
+.transicion td.activa { background:var(--dorado); }
+.transicion td .sig { display:block; font-size:14px; color:var(--tinta-suave); }
+.transicion td.activa .sig { color:var(--tinta); }
+.transicion tr.fila-actual th { box-shadow:inset 3px 0 0 var(--vitor); }
+
+/* diagrama de bloques */
+.diagrama { overflow-x:auto; }
+.diagrama svg { display:block; width:100%; min-width:520px; height:auto; }
+.d-caja { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.d-mem { fill:var(--dorado-suave); stroke:var(--dorado-texto); stroke-width:1.5; }
+.d-linea { fill:none; stroke:var(--tinta); stroke-width:1.5; }
+.d-realim { fill:none; stroke:var(--vitor); stroke-width:1.8; }
+.d-txt { fill:var(--tinta); font-family:var(--font-display); font-size:17px; font-weight:600; }
+.d-sub { fill:var(--tinta-suave); font-family:var(--font-sans); font-size:13px; }
+.d-var { fill:var(--tinta); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-var-v { fill:var(--vitor); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-flecha { fill:var(--tinta); } .d-flecha-v { fill:var(--vitor); }
+
+/* diagrama de estados */
+#diag-estados { min-width:560px; }
+.arista { fill:none; stroke:var(--tinta-suave); stroke-width:1.6; }
+.e-lentejas { stroke-dasharray:none; } .e-bici { stroke-dasharray:8 6; } .e-futbol { stroke-dasharray:2 5; stroke-linecap:round; }
+.leyenda path { fill:none; stroke:var(--tinta-suave); stroke-width:1.8; }
+.leyenda path.e-act { stroke:var(--vitor); stroke-width:3; }
+.arista.activa { stroke:var(--vitor); stroke-width:3; }
+.etq { font-family:var(--font-mono); font-size:13px; font-weight:500; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:4px; stroke-linejoin:round; }
+.etq.activa { font-weight:700; }
+.etq .o-R { fill:var(--vitor); } .etq .o-Ll { fill:var(--centenario); } .etq .o-0 { fill:var(--correcto); }
+.nodo { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.nodo.actual { fill:var(--dorado-suave); stroke:var(--vitor); stroke-width:3; }
+.nodo-txt { font-family:var(--font-display); font-size:15px; font-weight:600; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:5px; stroke-linejoin:round; }
+.punta { fill:var(--tinta-suave); } .punta-v { fill:var(--vitor); }
+.ley { display:inline-flex; align-items:center; gap:6px; font-size:14px; }
+.ley svg { width:40px; height:8px; }
+.formula { font-family:var(--font-mono); font-size:16px; background:var(--papel-hundido); border-radius:var(--radius-sm); padding:var(--space-3) var(--space-4); display:grid; gap:4px; }
+.formula .v { color:var(--vitor); font-weight:600; }
+
+.comparativa { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); max-width:68ch; }
+@media (max-width:600px) { .comparativa { grid-template-columns:1fr; } }
+.tarjeta { border:1px solid var(--piedra); border-radius:var(--radius-md); padding:var(--space-4); background:var(--papel-elevado); font-size:15px; line-height:22px; }
+.tarjeta h3 { margin-bottom:var(--space-2); }
+.tarjeta ul { margin:0; padding-left:18px; } .tarjeta li { margin-bottom:4px; }
+
+.reto { display:grid; gap:var(--space-4); }
+.pregunta { display:grid; gap:var(--space-3); padding:var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.opciones { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+.opciones .boton[aria-pressed="true"] { background:var(--centenario); border-color:var(--centenario); color:var(--sobre-centenario); }
+.pie { font-size:13px; line-height:18px; color:var(--tinta-suave); }
+.nav-leccion { max-width:960px; margin:0 auto var(--space-5); display:flex; justify-content:space-between; gap:var(--space-3); font-size:14px; flex-wrap:wrap; color:var(--tinta-suave); }
+.nav-leccion a { color:var(--centenario); }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+@keyframes aparece { from { background:var(--dorado); } }
+tr.nuevo td { animation:aparece 600ms ease-out; }
+
+/* realimentación y biestable RS */
+.neg { text-decoration:overline; text-decoration-thickness:1.5px; }
+.neg + .neg { margin-left:2px; }
+.circuito { overflow-x:auto; }
+.circuito svg { display:block; width:100%; min-width:520px; height:auto; }
+.puerta { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.6; }
+.cable { fill:none; stroke-width:2; stroke-linejoin:round; }
+.cable.v0 { stroke:var(--tinta-suave); }
+.cable.v1 { stroke:var(--vitor); stroke-width:3; }
+.nudo.v0 { fill:var(--tinta-suave); } .nudo.v1 { fill:var(--vitor); }
+.caja-bi { fill:none; stroke:var(--piedra-fuerte); stroke-width:1.4; stroke-dasharray:6 5; }
+.nombre { font-family:var(--font-display); font-size:22px; font-weight:600; fill:var(--tinta); }
+.valor { font-family:var(--font-mono); font-size:16px; font-weight:600; }
+.valor.v0 { fill:var(--tinta-suave); } .valor.v1 { fill:var(--vitor); }
+.interruptores { display:flex; flex-wrap:wrap; gap:var(--space-3); }
+.interruptor { font:700 17px/20px var(--font-sans); display:inline-flex; align-items:center; gap:var(--space-3); padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; }
+.interruptor .bit { font:600 17px/1 var(--font-mono); width:32px; height:32px; display:inline-grid; place-items:center; border-radius:var(--radius-sm); background:var(--papel-hundido); border:1px solid var(--piedra); }
+.interruptor[aria-pressed="true"] .bit { background:var(--vitor); border-color:var(--vitor); color:var(--sobre-vitor); }
+.interruptor:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.interruptor small { font-weight:400; color:var(--tinta-suave); font-size:14px; }
+.lectura { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:var(--space-3); }
+.dato { padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.dato .subt { display:block; }
+.dato b { font:600 24px/32px var(--font-mono); }
+.dato.prohibido { background:var(--dorado-suave); }
+@media (max-width:480px) { .lectura { grid-template-columns:1fr 1fr; } }
+.casos { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-4); }
+@media (max-width:720px) { .casos { grid-template-columns:1fr; } }
+.caso { border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); padding:var(--space-3); display:grid; gap:var(--space-2); min-width:0; }
+.caso .circuito svg { min-width:0; }
+.caso h3 { font-size:17px; line-height:22px; }
+.caso p { margin:0; font-size:15px; line-height:22px; color:var(--tinta-suave); }
+.conj-latex .el { font-family:var(--font-mono); }
+.fo { font-family:var(--font-mono); font-size:14px; font-weight:600; color:var(--tinta); text-align:center; line-height:22px; }
+.fo span.p { padding:2px 6px; border-radius:var(--radius-sm); background:var(--papel-elevado); }
+.fo.activa span.p { background:var(--dorado); }
+.nodo-e { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.nodo-e.actual { fill:var(--dorado-suave); stroke:var(--vitor); stroke-width:3; }
+.nodo-e-txt { font-family:var(--font-display); font-size:26px; font-weight:700; font-style:italic; fill:var(--tinta); }
+.nodo-e-sub { font-family:var(--font-mono); font-size:12px; fill:var(--tinta-suave); }
+.marco-diag { background:var(--centenario-suave); border-radius:var(--radius-lg); padding:var(--space-3); }
+.marco-diag svg { min-width:540px; }
+.tabla-rs td, .tabla-rs th { text-align:center; font-family:var(--font-mono); }
+.tabla-rs td:last-child, .tabla-rs th:last-child { text-align:left; font-family:var(--font-sans); }
+.tabla-rs tr.activa td { background:var(--dorado-suave); }
+</style>
+</head>
+<body>
+
+<nav class="nav-leccion" aria-label="Navegación del tema"><a href="index.html">← Índice del tema 6</a><span>2 / 2</span><span><a href="conceptos-basicos-secuenciales.html">← Conceptos básicos</a></span></nav>
+<div class="wrap">
+<header class="prosa">
+  <div class="cabecera">
+    <img alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%236b5f55'%3E%3Crect x='18' y='2' width='4' height='8' rx='1'/%3E%3Crect x='30' y='2' width='4' height='8' rx='1'/%3E%3Crect x='42' y='2' width='4' height='8' rx='1'/%3E%3Crect x='18' y='54' width='4' height='8' rx='1'/%3E%3Crect x='30' y='54' width='4' height='8' rx='1'/%3E%3Crect x='42' y='54' width='4' height='8' rx='1'/%3E%3Crect x='2' y='18' width='8' height='4' rx='1'/%3E%3Crect x='2' y='30' width='8' height='4' rx='1'/%3E%3Crect x='2' y='42' width='8' height='4' rx='1'/%3E%3Crect x='54' y='18' width='8' height='4' rx='1'/%3E%3Crect x='54' y='30' width='8' height='4' rx='1'/%3E%3Crect x='54' y='42' width='8' height='4' rx='1'/%3E%3C/g%3E%3Crect x='8' y='8' width='48' height='48' rx='12' fill='%23a8192b'/%3E%3Crect x='16' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='25' y='24' width='7' height='16' rx='2' fill='%23f7dddc' fill-opacity='.35'/%3E%3Crect x='34' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='43' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3C/svg%3E">
+    <span class="etiqueta">Computadores · Tema 6</span>
+  </div>
+  <h1>Realimentación: el biestable RS</h1>
+  <p>Mediante <strong>realimentación</strong> es fácil construir circuitos con varios estados. Basta con llevar la salida de una puerta de vuelta a la entrada de otra cuya salida, a su vez, vuelve a la primera. El circuito pasa a depender de lo que él mismo está produciendo: así aparece la memoria.</p>
+  <p>El ejemplo clásico son dos puertas NOR cruzadas. Tienen dos entradas, <code>R</code> (<i>reset</i>, poner a 0) y <code>S</code> (<i>set</i>, poner a 1), y una salida <code>O</code>.</p>
+</header>
+
+<section>
+  <h2>Pruébalo</h2>
+  <div class="prosa"><p>Cambia <code>R</code> y <code>S</code> y sigue los cables: en rojo los que valen 1. Hemos empezado con <code>R = S = 0</code>, después hemos activado <code>S</code> y lo hemos vuelto a desactivar. Ahora la entrada es otra vez <code>R = S = 0</code>, pero la salida ya no es la del principio.</p></div>
+  <div class="panel">
+    <div class="circuito" id="circuito"></div>
+    <div class="grid2">
+      <div class="col">
+        <div class="interruptores" id="interruptores"></div>
+        <div class="lectura" id="lectura"></div>
+        <div id="aviso"></div>
+      </div>
+      <div class="col">
+        <div class="subt">Historia</div>
+        <div class="tabla-wrap">
+          <table>
+            <thead><tr><th>t</th><th>R S</th><th>Estado</th><th>Salida O</th><th>Estado siguiente</th></tr></thead>
+            <tbody id="historia"></tbody>
+          </table>
+        </div>
+        <div class="fila"><button class="boton boton-discreto" id="b-reset">Reiniciar en e₀ con R = S = 0</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Misma entrada, dos salidas</h2>
+  <p>Con <code>R = 0</code> y <code>S = 0</code> el circuito tiene dos situaciones estables. Las dos cumplen las ecuaciones de las puertas, y el circuito se queda en la que estuviera.</p>
+  <div class="casos" id="casos"></div>
+  <p style="margin-top:var(--space-4)">Vemos que, <strong>cuando R = 0 y S = 0, la salida puede ser 0 o 1 dependiendo del estado</strong> en que se encuentre el circuito.</p>
+  <div class="tabla-wrap">
+    <table class="tabla-rs" id="tabla-rs">
+      <thead><tr><th>R</th><th>S</th><th>O siguiente</th><th>Qué hace</th></tr></thead>
+      <tbody>
+        <tr data-rs="00"><td>0</td><td>0</td><td>sin cambio</td><td>Mantiene el valor: memoria</td></tr>
+        <tr data-rs="01"><td>0</td><td>1</td><td>1</td><td>Pone la salida a 1 (<i>set</i>)</td></tr>
+        <tr data-rs="10"><td>1</td><td>0</td><td>0</td><td>Pone la salida a 0 (<i>reset</i>)</td></tr>
+        <tr data-rs="11"><td>1</td><td>1</td><td>0</td><td>Prohibida: las dos puertas dan 0</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Entradas, salidas y estados</h2>
+  <div class="prosa">
+    <p>Igual que con el niño, podemos describir el circuito con sus conjuntos. La barra encima indica que la señal vale 0: <span class="neg">R</span> es «R = 0».</p>
+    <div class="conjuntos conj-latex">
+      <div class="conjunto"><div class="letra">I<small>entradas</small></div><div class="elementos"><span class="llave">{</span><span class="el"><span class="neg">R</span><span class="neg">S</span></span><span class="el"><span class="neg">R</span>S</span><span class="el">R<span class="neg">S</span></span><span class="el">RS</span><span class="llave">}</span></div></div>
+      <div class="conjunto"><div class="letra">O<small>salidas</small></div><div class="elementos"><span class="llave">{</span><span class="el"><span class="neg">O</span></span><span class="el">O</span><span class="llave">}</span></div></div>
+      <div class="conjunto"><div class="letra">S<small>estados</small></div><div class="elementos"><span class="llave">{</span><span class="el">e₀</span><span class="el">e₁</span><span class="llave">}</span></div></div>
+    </div>
+  </div>
+  <div class="prosa" style="margin-top:var(--space-5)"><p>Y su diagrama de estados. En <i>e₀</i> la salida vale 0; en <i>e₁</i>, 1. La transición que acabas de usar en el simulador aparece resaltada.</p></div>
+  <div class="marco-diag circuito">
+    <svg id="diag-rs" viewBox="0 0 640 300" role="img" aria-label="Diagrama de estados del biestable RS: dos estados e0 y e1 con seis transiciones etiquetadas como entrada / salida."></svg>
+  </div>
+  <div class="prosa" style="margin-top:var(--space-5)">
+    <div class="nota nota-cuidado">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/></svg>
+      <div><b>La entrada RS no aparece en el diagrama</b><div class="cuerpo">Con <code>R = S = 1</code> las dos puertas dan 0, y si después las dos entradas vuelven a 0 a la vez, el estado final depende de qué puerta reaccione antes. Por eso esa combinación se evita.</div></div>
+    </div>
+    <p style="margin-top:var(--space-4)"></p>
+    <div class="nota nota-idea">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/></svg>
+      <div><b>Idea</b><div class="cuerpo">En este ejemplo, <strong>mediante la salida podemos saber en qué estado está el circuito</strong>: O = 0 es <i>e₀</i> y O = 1 es <i>e₁</i>. Pero no tiene por qué ser así. En el niño, por ejemplo, el gesto «nada» aparece estando triste y también estando normal.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Compruébalo</h2>
+  <div class="reto" id="reto"></div>
+  <p class="pie">Las respuestas se corrigen en la página; nada se envía a ningún sitio.</p>
+</section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var nor = function(a,b){ return (a||b) ? 0 : 1; };
+
+  // puerta NOR: back en x0, punta en x1 (si x1 < x0 mira a la izquierda), centro cy
+  function puerta(x0, x1, cy){
+    var d = x1 > x0 ? 1 : -1, h = 30, L = Math.abs(x1-x0);
+    var p = 'M'+x0+' '+(cy-h)+'Q'+(x0+d*15)+' '+cy+' '+x0+' '+(cy+h)
+          + 'Q'+(x0+d*L*0.6)+' '+(cy+h)+' '+x1+' '+cy+'Q'+(x0+d*L*0.6)+' '+(cy-h)+' '+x0+' '+(cy-h)+'Z';
+    return '<path class="puerta" d="'+p+'"/><circle class="puerta" cx="'+(x1+d*6)+'" cy="'+cy+'" r="6"/>';
+  }
+  // R, S entradas; O salida de la NOR superior; P salida de la NOR inferior
+  function circuito(R, S, O, P, compacto){
+    var v = function(x){ return 'v'+x; };
+    var out = '<svg viewBox="0 0 640 300" role="img" aria-label="Biestable RS con dos puertas NOR: R='+R+', S='+S+', O='+O+'.">'
+      + '<rect class="caja-bi" x="200" y="34" width="268" height="256" rx="4"/>'
+      + '<path class="cable '+v(R)+'" d="M80 70H266"/>'
+      + '<path class="cable '+v(S)+'" d="M80 270H440V230H358"/>'
+      + '<path class="cable '+v(O)+'" d="M352 90H560"/>'
+      + '<path class="cable '+v(O)+'" d="M420 90V190H358"/>'
+      + '<path class="cable '+v(P)+'" d="M270 210H226V110H266"/>'
+      + '<circle class="nudo '+v(O)+'" cx="420" cy="90" r="4.5"/>'
+      + puerta(262, 340, 90) + puerta(362, 284, 210)
+      + '<text class="nombre" x="48" y="78">R</text><text class="nombre" x="48" y="278">S</text><text class="nombre" x="572" y="98">O</text>'
+      + '<text class="valor '+v(R)+'" x="96" y="60">'+R+'</text>'
+      + '<text class="valor '+v(S)+'" x="96" y="260">'+S+'</text>'
+      + '<text class="valor '+v(O)+'" x="500" y="80">'+O+'</text>'
+      + '<text class="valor '+v(P)+'" x="208" y="165">'+P+'</text>'
+      + '</svg>';
+    return out;
+  }
+
+  // estado del simulador: q es la salida guardada (0 = e₀, 1 = e₁)
+  var sim;
+  function evalua(R, S, q){
+    if (R && S) return { O:0, P:0, q:q };
+    if (S) return { O:1, P:0, q:1 };
+    if (R) return { O:0, P:1, q:0 };
+    return { O:q, P:nor(q,0), q:q };
+  }
+  function reset(conEjemplo){
+    sim = { R:0, S:0, q:0, hist:[], ultima:null, carrera:false };
+    aplica(0,0);
+    if (conEjemplo){ aplica(0,1); aplica(0,0); }
+    render();
+  }
+  function aplica(R, S){
+    var antes = sim.q, venia11 = sim.R && sim.S;
+    sim.R = R; sim.S = S; sim.carrera = false;
+    var r = evalua(R, S, sim.q);
+    if (venia11 && !R && !S){ r.q = Math.random() < .5 ? 0 : 1; r.O = r.q; r.P = nor(r.q,0); sim.carrera = true; }
+    sim.q = r.q; sim.O = r.O; sim.P = r.P;
+    sim.hist.push({ t:sim.hist.length, rs:''+R+S, s:antes, O:r.O, sig:r.q });
+    sim.ultima = { s:antes, rs:''+R+S };
+  }
+  function rsTxt(rs){ return (rs[0]==='1'?'R':'<span class="neg">R</span>')+(rs[1]==='1'?'S':'<span class="neg">S</span>'); }
+
+  function render(){
+    $('circuito').innerHTML = circuito(sim.R, sim.S, sim.O, sim.P);
+    $('interruptores').innerHTML = ['R','S'].map(function(k){
+      var on = sim[k]===1;
+      return '<button class="interruptor" data-k="'+k+'" aria-pressed="'+on+'"><span class="bit">'+sim[k]+'</span>'+k+' <small>'+(k==='R'?'reset':'set')+'</small></button>';
+    }).join('');
+    var prohib = sim.R && sim.S;
+    $('lectura').innerHTML = '<div class="dato"><span class="subt">Salida O</span><b>'+sim.O+'</b></div>'
+      + '<div class="dato'+(prohib?' prohibido':'')+'"><span class="subt">Estado</span><b>'+(prohib?'—':(sim.q?'e₁':'e₀'))+'</b></div>'
+      + '<div class="dato"><span class="subt">Puerta inferior</span><b>'+sim.P+'</b></div>';
+    var h = sim.hist, u = h[h.length-1], choque = null;
+    for (var i=0;i<h.length-1;i++) if (h[i].rs===u.rs && h[i].O!==u.O) { choque = h[i]; break; }
+    $('historia').innerHTML = h.map(function(x,i){
+      var cls = (i===h.length-1?'nuevo':'') + (choque && (x===choque || i===h.length-1) ? ' choque':'');
+      return '<tr class="'+cls+'"><td class="t">'+x.t+'</td><td class="ent">'+x.rs[0]+' '+x.rs[1]+'</td><td>'+(x.s?'e₁':'e₀')+'</td><td>'+x.O+'</td><td>'+(x.rs==='11'?'—':(x.sig?'e₁':'e₀'))+'</td></tr>';
+    }).join('');
+    var aviso = '';
+    if (prohib) aviso = '<div class="nota nota-cuidado" role="status"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/></svg><div><b>Entrada prohibida</b><div class="cuerpo">Con R = S = 1 las dos puertas dan 0. Si ahora bajas las dos a la vez, el estado final dependerá de qué puerta reaccione antes.</div></div></div>';
+    else if (sim.carrera) aviso = '<div class="nota nota-cuidado" role="status"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/></svg><div><b>Carrera</b><div class="cuerpo">Has pasado de R = S = 1 a R = S = 0 de golpe. El circuito ha acabado en '+(sim.q?'e₁':'e₀')+', pero podría haber acabado en el otro estado: depende de qué puerta sea más rápida. Prueba otra vez y puede salir distinto.</div></div></div>';
+    else if (choque) aviso = '<div class="nota nota-idea" role="status"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/></svg><div><b>Misma entrada, salida distinta</b><div class="cuerpo">En t = '+choque.t+' la entrada era R = '+u.rs[0]+', S = '+u.rs[1]+' y la salida valía '+choque.O+'. Ahora, con la misma entrada, vale '+u.O+'. Lo que ha cambiado es el estado: el circuito recuerda el último <i>set</i> o <i>reset</i>.</div></div></div>';
+    $('aviso').innerHTML = aviso;
+    document.querySelectorAll('#tabla-rs tbody tr').forEach(function(tr){ tr.classList.toggle('activa', tr.dataset.rs===u.rs); });
+    diagrama();
+    document.querySelectorAll('#interruptores .interruptor').forEach(function(b){
+      b.addEventListener('click', function(){
+        var k = b.dataset.k, R = sim.R, S = sim.S;
+        if (k==='R') R = 1-R; else S = 1-S;
+        aplica(R, S); render();
+        var nb = document.querySelector('#interruptores [data-k="'+k+'"]'); if (nb) nb.focus();
+      });
+    });
+  }
+
+  // diagrama de estados (el de la lección): aristas por estado y entrada
+  var NODO = { 0:[220,150], 1:[420,150] };
+  var ARISTA = [
+    { s:0, rs:'00', d:'M204 109C180 50 120 80 178 136', l:[118,46] },
+    { s:0, rs:'10', d:'M178 164C120 220 180 250 204 191', l:[118,254] },
+    { s:0, rs:'01', d:'M250 118Q320 70 390 118', l:[320,66] },
+    { s:1, rs:'10', d:'M390 182Q320 230 250 182', l:[320,230] },
+    { s:1, rs:'00', d:'M436 109C460 50 520 80 462 136', l:[522,46] },
+    { s:1, rs:'01', d:'M462 164C520 220 460 250 436 191', l:[522,254] }
+  ];
+  function diagrama(){
+    var u = sim.ultima, out = '<defs><marker id="pr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="punta" d="M0 0L10 5L0 10z"/></marker><marker id="prv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path class="punta-v" d="M0 0L10 5L0 10z"/></marker></defs>';
+    ARISTA.forEach(function(a){
+      var act = u && u.s===a.s && u.rs===a.rs;
+      var o = evalua(+a.rs[0], +a.rs[1], a.s).O;
+      out += '<path class="arista'+(act?' activa':'')+'" d="'+a.d+'" marker-end="url(#'+(act?'prv':'pr')+')"/>'
+        + '<foreignObject x="'+(a.l[0]-70)+'" y="'+(a.l[1]-14)+'" width="140" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="fo'+(act?' activa':'')+'"><span class="p">'+rsTxt(a.rs)+' / '+(o?'O':'<span class="neg">O</span>')+'</span></div></foreignObject>';
+    });
+    [0,1].forEach(function(s){
+      var p = NODO[s], act = !(sim.R && sim.S) && sim.q===s;
+      out += '<circle class="nodo-e'+(act?' actual':'')+'" cx="'+p[0]+'" cy="'+p[1]+'" r="44"/>'
+        + '<text class="nodo-e-txt" x="'+p[0]+'" y="'+(p[1]+4)+'" text-anchor="middle">e'+(s?'₁':'₀')+'</text>'
+        + '<text class="nodo-e-sub" x="'+p[0]+'" y="'+(p[1]+24)+'" text-anchor="middle">O = '+s+'</text>';
+    });
+    $('diag-rs').innerHTML = out;
+  }
+
+  $('casos').innerHTML = [[0,1,'Estado e₀','La salida O vale 0, así que la puerta inferior recibe 0 y 0 y da 1. Ese 1 entra en la puerta superior y mantiene O a 0.'],[1,0,'Estado e₁','La salida O vale 1, así que la puerta inferior da 0. La puerta superior recibe 0 y 0 y da 1: O se mantiene a 1.']].map(function(c){
+    return '<div class="caso"><h3>'+c[2]+' · O = '+c[0]+'</h3><div class="circuito">'+circuito(0,0,c[0],c[1])+'</div><p>'+c[3]+'</p></div>';
+  }).join('');
+
+  $('b-reset').addEventListener('click', function(){ reset(false); });
+  reset(true);
+
+  var PREG = [
+    { q:'El biestable está en <i>e₁</i> (O = 1) y ponemos <code>R = 0</code>, <code>S = 0</code>. ¿Qué vale O?', ops:['0','1','No se puede saber'], ok:1, exp:'Con R = S = 0 el biestable mantiene su valor. Como estaba en e₁, O sigue valiendo 1.' },
+    { q:'¿Qué entrada lleva el biestable a <i>e₀</i> sea cual sea su estado?', ops:['R = 0, S = 1','R = 1, S = 0','R = 0, S = 0'], ok:1, exp:'R = 1 es reset: fuerza la salida de la puerta superior a 0, y el circuito queda en e₀.' },
+    { q:'¿Qué es lo que permite que este circuito tenga memoria?', ops:['Que use puertas NOR','La realimentación: la salida vuelve a entrar en las puertas','Que tenga dos entradas'], ok:1, exp:'Sin el lazo de realimentación serían dos puertas combinacionales. El lazo es lo que mantiene el valor.' },
+    { q:'En este biestable, conocer la salida O basta para saber el estado. ¿Ocurre siempre en un circuito secuencial?', ops:['Sí, la salida siempre indica el estado','No, no tiene por qué ser así'], ok:1, exp:'Aquí O = 0 es e₀ y O = 1 es e₁, pero en general varios estados pueden producir la misma salida, como el gesto «nada» del niño.' }
+  ];
+  var Rt = $('reto');
+  PREG.forEach(function(p, i){
+    var div = document.createElement('div'); div.className = 'pregunta';
+    div.innerHTML = '<div><span class="etiqueta etiqueta-neutra">Pregunta '+(i+1)+'</span></div><div>'+p.q+'</div><div class="opciones" role="group" aria-label="Opciones de la pregunta '+(i+1)+'">'+p.ops.map(function(o,j){ return '<button class="boton" data-j="'+j+'" aria-pressed="false">'+o+'</button>'; }).join('')+'</div><div class="feedback"></div>';
+    Rt.appendChild(div);
+    div.querySelectorAll('.opciones .boton').forEach(function(b){
+      b.addEventListener('click', function(){
+        div.querySelectorAll('.opciones .boton').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+        b.setAttribute('aria-pressed','true');
+        var ok = +b.dataset.j === p.ok;
+        div.querySelector('.feedback').innerHTML = '<div class="nota '+(ok?'nota-correcto':'nota-incorrecto')+'" role="status">'
+          + (ok ? '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l4 4 10-9"/></svg>' : '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l10 10M15 5 5 15"/></svg>')
+          + '<div><b>'+(ok?'Correcto':'Incorrecto')+'</b><div class="cuerpo">'+p.exp+'</div></div></div>';
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

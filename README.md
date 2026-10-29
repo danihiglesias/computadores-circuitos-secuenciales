@@ -1,7 +1,11 @@
-# Circuitos secuenciales · Conceptos básicos
+# Tema 6 · Circuitos secuenciales
 
-Explicación interactiva del apartado 6.1 (Tema 6: Circuitos secuenciales) de la asignatura Computadores, Universidad de Salamanca.
+Explicaciones interactivas del Tema 6 de la asignatura Computadores, Universidad de Salamanca. Cada página tiene un simulador, los diagramas de la teoría y preguntas de autoevaluación.
 
-Incluye el ejemplo del niño como autómata (entradas, salidas y estados), un simulador, la tabla de comportamiento, el diagrama de estados, el diagrama de bloques de un circuito secuencial y preguntas de autoevaluación.
+Web: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
 
-Página publicada: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
+| Página | Contenido |
+| --- | --- |
+| [index.html](index.html) | Índice del tema |
+| [conceptos-basicos-secuenciales.html](conceptos-basicos-secuenciales.html) | 6.1 · Circuitos secuenciales y estado: el niño como autómata |
+| [biestable-rs.html](biestable-rs.html) | 6.1 · Realimentación: el biestable RS con puertas NOR |
