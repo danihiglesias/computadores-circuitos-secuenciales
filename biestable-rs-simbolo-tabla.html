@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Biestable RS</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Lato:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+
+/* Layout: columna de lectura (68 ch) con el simulador a ancho completo; tema único claro del sistema Computadores */
+:root {
+  --papel:#f8f4ec; --papel-elevado:#ffffff; --papel-hundido:#efe8db; --piedra:#e3d9c8; --piedra-fuerte:#857869;
+  --tinta:#2a2420; --tinta-suave:#6b5f55;
+  --vitor:#a8192b; --vitor-suave:#f7dddc; --sobre-vitor:#ffffff;
+  --dorado:#d9a441; --dorado-texto:#8a5a0a; --dorado-suave:#fbeed2;
+  --centenario:#385e9d; --centenario-suave:#dde6f4; --sobre-centenario:#ffffff;
+  --correcto:#1f6f43; --correcto-suave:#dcefe2;
+  --incorrecto:var(--vitor); --incorrecto-suave:var(--vitor-suave);
+  --foco:var(--centenario);
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px; --space-8:64px;
+  --radius-sm:6px; --radius-md:12px; --radius-lg:20px; --radius-pill:999px;
+  --sombra-tarjeta:0 1px 2px rgba(42,36,32,.06), 0 4px 12px rgba(42,36,32,.06);
+  --font-display:"Bricolage Grotesque","Lato",system-ui,sans-serif;
+  --font-sans:"Lato",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+* { box-sizing:border-box; }
+body { background:var(--papel); color:var(--tinta); font-family:var(--font-sans); font-size:17px; line-height:27px; margin:0;
+  padding-block:var(--space-6) var(--space-8); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+.wrap { max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:var(--space-7); }
+.prosa { max-width:68ch; }
+.prosa p { margin:0 0 var(--space-4); }
+h1,h2,h3 { font-family:var(--font-display); text-wrap:balance; margin:0; }
+h1 { font-size:40px; line-height:44px; font-weight:700; letter-spacing:-.02em; margin:var(--space-2) 0 var(--space-4); }
+h2 { font-size:28px; line-height:34px; font-weight:600; letter-spacing:-.01em; margin-bottom:var(--space-4); display:inline-block; box-shadow:inset 0 -4px 0 var(--dorado); }
+h3 { font-size:20px; line-height:26px; font-weight:600; }
+.etiqueta { display:inline-flex; align-items:center; gap:var(--space-1); font-size:12px; line-height:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:2px var(--space-2); border-radius:var(--radius-pill); background:var(--vitor-suave); color:var(--vitor); }
+.etiqueta-neutra { background:var(--papel-hundido); color:var(--tinta-suave); }
+.cabecera { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+.cabecera img { width:40px; height:40px; }
+code { font-family:var(--font-mono); font-size:15px; background:var(--papel-hundido); padding:1px 6px; border-radius:var(--radius-sm); }
+
+.nota { display:grid; grid-template-columns:20px 1fr; gap:var(--space-3); padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-elevado); border:1px solid var(--piedra); font-size:15px; line-height:22px; max-width:68ch; }
+.nota svg { width:20px; height:20px; margin-top:1px; }
+.nota b { display:block; margin-bottom:2px; }
+.nota-idea { background:var(--centenario-suave); border-color:var(--centenario-suave); color:var(--centenario); }
+.nota-cuidado { background:var(--dorado-suave); border-color:var(--dorado-suave); color:var(--dorado-texto); }
+.nota-correcto { background:var(--correcto-suave); border-color:var(--correcto-suave); color:var(--correcto); }
+.nota-incorrecto { background:var(--incorrecto-suave); border-color:var(--incorrecto-suave); color:var(--incorrecto); }
+.nota .cuerpo { color:var(--tinta); }
+
+.panel { background:var(--papel-elevado); border-radius:var(--radius-lg); box-shadow:var(--sombra-tarjeta); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-5); }
+.grid2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-5); align-items:start; }
+@media (max-width:720px) { .grid2 { grid-template-columns:1fr; } }
+.col { display:flex; flex-direction:column; gap:var(--space-4); min-width:0; }
+.boton { font:700 15px/20px var(--font-sans); padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; display:inline-flex; align-items:center; gap:var(--space-2); }
+.boton-discreto { background:transparent; border-color:transparent; color:var(--vitor); }
+.boton:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.boton:hover { border-color:var(--vitor); }
+.fila { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; }
+.subt { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); }
+
+/* conjuntos I, O, S */
+.conjuntos { display:grid; gap:var(--space-3); }
+.conjunto { display:grid; grid-template-columns:56px 1fr; gap:var(--space-3); align-items:center; padding:var(--space-3) var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.conjunto .letra { font:600 30px/1 var(--font-display); font-style:italic; text-align:center; }
+.conjunto .letra small { display:block; font:700 11px/14px var(--font-sans); font-style:normal; letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); margin-top:4px; }
+.elementos { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; font-family:var(--font-mono); font-size:15px; }
+.elementos .llave { font-size:24px; color:var(--tinta-suave); }
+.el { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:var(--radius-pill); background:var(--papel-hundido); }
+.el svg { width:20px; height:20px; flex:none; }
+
+/* gestos */
+.gesto { font:700 13px/1 var(--font-mono); padding:3px 7px; border-radius:var(--radius-sm); display:inline-block; min-width:28px; text-align:center; }
+.g-R { background:var(--vitor-suave); color:var(--vitor); }
+.g-Ll { background:var(--centenario-suave); color:var(--centenario); }
+.g-0 { background:var(--correcto-suave); color:var(--correcto); }
+
+/* simulador */
+.nino { display:grid; grid-template-columns:auto 1fr; gap:var(--space-4); align-items:center; padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.cara { width:88px; height:88px; }
+.cara circle.c { fill:var(--dorado-suave); stroke:var(--tinta); stroke-width:1.4; }
+.cara .r { fill:none; stroke:var(--tinta); stroke-width:1.6; stroke-linecap:round; }
+.cara .o { fill:var(--tinta); }
+.cara .lagrima { fill:var(--centenario); }
+.nino .estado-txt { font:600 24px/30px var(--font-display); }
+.nino .estado-txt em { font-style:normal; color:var(--tinta-suave); font-size:15px; font-family:var(--font-sans); font-weight:400; display:block; line-height:20px; }
+.salida-grande { margin-top:var(--space-2); display:flex; align-items:center; gap:var(--space-2); font-size:15px; }
+.salida-grande .gesto { font-size:17px; padding:6px 12px; }
+.entradas .boton svg { width:22px; height:22px; }
+
+.tabla-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+th, td { padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--piedra); text-align:left; white-space:nowrap; }
+thead th { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); background:var(--papel-hundido); }
+td.t { font-family:var(--font-mono); color:var(--tinta-suave); font-variant-numeric:tabular-nums; }
+tr.nuevo td { background:var(--dorado-suave); }
+tr.choque td.ent { box-shadow:inset 3px 0 0 var(--vitor); }
+.transicion td, .transicion th { text-align:center; }
+.transicion tbody th { text-align:left; font-family:var(--font-display); font-size:16px; font-weight:600; background:var(--papel-hundido); }
+.transicion td.activa { background:var(--dorado); }
+.transicion td .sig { display:block; font-size:14px; color:var(--tinta-suave); }
+.transicion td.activa .sig { color:var(--tinta); }
+.transicion tr.fila-actual th { box-shadow:inset 3px 0 0 var(--vitor); }
+
+/* diagrama de bloques */
+.diagrama { overflow-x:auto; }
+.diagrama svg { display:block; width:100%; min-width:520px; height:auto; }
+.d-caja { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.d-mem { fill:var(--dorado-suave); stroke:var(--dorado-texto); stroke-width:1.5; }
+.d-linea { fill:none; stroke:var(--tinta); stroke-width:1.5; }
+.d-realim { fill:none; stroke:var(--vitor); stroke-width:1.8; }
+.d-txt { fill:var(--tinta); font-family:var(--font-display); font-size:17px; font-weight:600; }
+.d-sub { fill:var(--tinta-suave); font-family:var(--font-sans); font-size:13px; }
+.d-var { fill:var(--tinta); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-var-v { fill:var(--vitor); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-flecha { fill:var(--tinta); } .d-flecha-v { fill:var(--vitor); }
+
+/* diagrama de estados */
+#diag-estados { min-width:560px; }
+.arista { fill:none; stroke:var(--tinta-suave); stroke-width:1.6; }
+.e-lentejas { stroke-dasharray:none; } .e-bici { stroke-dasharray:8 6; } .e-futbol { stroke-dasharray:2 5; stroke-linecap:round; }
+.leyenda path { fill:none; stroke:var(--tinta-suave); stroke-width:1.8; }
+.leyenda path.e-act { stroke:var(--vitor); stroke-width:3; }
+.arista.activa { stroke:var(--vitor); stroke-width:3; }
+.etq { font-family:var(--font-mono); font-size:13px; font-weight:500; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:4px; stroke-linejoin:round; }
+.etq.activa { font-weight:700; }
+.etq .o-R { fill:var(--vitor); } .etq .o-Ll { fill:var(--centenario); } .etq .o-0 { fill:var(--correcto); }
+.nodo { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.nodo.actual { fill:var(--dorado-suave); stroke:var(--vitor); stroke-width:3; }
+.nodo-txt { font-family:var(--font-display); font-size:15px; font-weight:600; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:5px; stroke-linejoin:round; }
+.punta { fill:var(--tinta-suave); } .punta-v { fill:var(--vitor); }
+.ley { display:inline-flex; align-items:center; gap:6px; font-size:14px; }
+.ley svg { width:40px; height:8px; }
+.formula { font-family:var(--font-mono); font-size:16px; background:var(--papel-hundido); border-radius:var(--radius-sm); padding:var(--space-3) var(--space-4); display:grid; gap:4px; }
+.formula .v { color:var(--vitor); font-weight:600; }
+
+.comparativa { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); max-width:68ch; }
+@media (max-width:600px) { .comparativa { grid-template-columns:1fr; } }
+.tarjeta { border:1px solid var(--piedra); border-radius:var(--radius-md); padding:var(--space-4); background:var(--papel-elevado); font-size:15px; line-height:22px; }
+.tarjeta h3 { margin-bottom:var(--space-2); }
+.tarjeta ul { margin:0; padding-left:18px; } .tarjeta li { margin-bottom:4px; }
+
+.reto { display:grid; gap:var(--space-4); }
+.pregunta { display:grid; gap:var(--space-3); padding:var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.opciones { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+.opciones .boton[aria-pressed="true"] { background:var(--centenario); border-color:var(--centenario); color:var(--sobre-centenario); }
+.pie { font-size:13px; line-height:18px; color:var(--tinta-suave); }
+.nav-leccion { max-width:960px; margin:0 auto var(--space-5); display:flex; justify-content:space-between; gap:var(--space-3); font-size:14px; flex-wrap:wrap; color:var(--tinta-suave); }
+.nav-leccion a { color:var(--centenario); }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+@keyframes aparece { from { background:var(--dorado); } }
+tr.nuevo td { animation:aparece 600ms ease-out; }
+
+/* 6.2.1 biestable RS: símbolo, tabla de verdad, puertas NOR, diagrama y cronograma */
+.neg { text-decoration:overline; text-decoration-thickness:1.5px; }
+.circuito { overflow-x:auto; }
+.circuito svg { display:block; width:100%; height:auto; }
+.puerta { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.6; }
+.cable { fill:none; stroke-width:2; stroke-linejoin:round; }
+.cable.v0 { stroke:var(--tinta-suave); } .cable.v1 { stroke:var(--vitor); stroke-width:3; }
+.nudo.v0 { fill:var(--tinta-suave); } .nudo.v1 { fill:var(--vitor); }
+.nombre { font-family:var(--font-sans); font-size:22px; font-weight:700; fill:var(--tinta); }
+.raya { stroke:var(--tinta); stroke-width:1.6; }
+.valor { font-family:var(--font-mono); font-size:16px; font-weight:600; }
+.valor.v0 { fill:var(--tinta-suave); } .valor.v1 { fill:var(--vitor); }
+.caja-simb { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.8; }
+.pin { font-family:var(--font-sans); font-size:16px; fill:var(--tinta); }
+.funciones { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+.funcion { font:700 15px/20px var(--font-sans); display:inline-flex; align-items:center; gap:var(--space-2); padding:var(--space-2) var(--space-3); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; }
+.funcion code { background:var(--papel-hundido); padding:1px 6px; }
+.funcion[aria-pressed="true"] { background:var(--vitor); border-color:var(--vitor); color:var(--sobre-vitor); }
+.funcion[aria-pressed="true"] code { background:rgba(255,255,255,.2); color:inherit; }
+.funcion:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.vista { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,3fr); gap:var(--space-5); align-items:center; }
+@media (max-width:720px) { .vista { grid-template-columns:1fr; } }
+.lectura { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:var(--space-3); }
+.dato { padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.dato .subt { display:block; }
+.dato b { font:600 24px/32px var(--font-mono); }
+.dato.mal { background:var(--dorado-suave); }
+@media (max-width:480px) { .lectura { grid-template-columns:1fr; } }
+.tabla-verdad { font-variant-numeric:tabular-nums; }
+.tabla-verdad td, .tabla-verdad th { text-align:center; font-family:var(--font-mono); }
+.tabla-verdad td:first-child, .tabla-verdad th:first-child { text-align:left; font-family:var(--font-sans); font-weight:700; }
+.tabla-verdad tbody tr { cursor:pointer; }
+.tabla-verdad tbody tr:hover td { background:var(--papel-hundido); }
+.tabla-verdad tr.activa td { background:var(--dorado-suave); }
+.tabla-verdad td.sep, .tabla-verdad th.sep { border-left:1px solid var(--piedra-fuerte); }
+sub { font-size:.7em; }
+.fo { font-family:var(--font-mono); font-size:14px; font-weight:600; color:var(--tinta); text-align:center; line-height:22px; }
+.fo span.p { padding:2px 6px; border-radius:var(--radius-sm); background:var(--papel-elevado); white-space:nowrap; }
+.fo span.p i { font-style:normal; font-family:var(--font-sans); font-weight:700; color:var(--tinta-suave); margin-right:4px; }
+.fo.activa span.p { background:var(--dorado); } .fo.activa span.p i { color:var(--tinta); }
+.nodo-e { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.nodo-e.actual { fill:var(--dorado-suave); stroke:var(--vitor); stroke-width:3; }
+.nodo-e-txt { font-family:var(--font-mono); font-size:22px; font-weight:600; font-style:italic; fill:var(--tinta); }
+.marco-diag { background:var(--centenario-suave); border-radius:var(--radius-lg); padding:var(--space-3); }
+.marco-diag svg { min-width:560px; }
+.crono svg { min-width:640px; }
+.onda { fill:none; stroke-width:2.2; stroke-linejoin:round; }
+.onda.ent { stroke:var(--tinta); } .onda.q { stroke:var(--vitor); stroke-width:2.6; } .onda.qn { stroke:var(--centenario); stroke-width:2.6; }
+.fondo-fila { fill:var(--papel); }
+.hueco { fill:transparent; cursor:pointer; } .hueco:hover { fill:var(--dorado-suave); }
+.invalida { fill:var(--dorado-suave); }
+.indet { fill:url(#rayado); stroke:var(--dorado-texto); stroke-width:1; }
+.rayado-l { stroke:var(--dorado-texto); stroke-width:1.5; }
+.etq-fila { font-family:var(--font-mono); font-size:16px; font-weight:600; fill:var(--tinta); }
+.etq-sub { font-family:var(--font-sans); font-size:11px; fill:var(--tinta-suave); }
+.rejilla { stroke:var(--piedra); stroke-width:1; }
+</style>
+</head>
+<body>
+
+<nav class="nav-leccion" aria-label="Navegación del tema"><a href="index.html">← Índice del tema 6</a><span>4 / 4</span><span><a href="circuitos-sincronos-reloj.html">← Circuitos síncronos y reloj</a></span></nav>
+<div class="wrap">
+<header class="prosa">
+  <div class="cabecera">
+    <img alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%236b5f55'%3E%3Crect x='18' y='2' width='4' height='8' rx='1'/%3E%3Crect x='30' y='2' width='4' height='8' rx='1'/%3E%3Crect x='42' y='2' width='4' height='8' rx='1'/%3E%3Crect x='18' y='54' width='4' height='8' rx='1'/%3E%3Crect x='30' y='54' width='4' height='8' rx='1'/%3E%3Crect x='42' y='54' width='4' height='8' rx='1'/%3E%3Crect x='2' y='18' width='8' height='4' rx='1'/%3E%3Crect x='2' y='30' width='8' height='4' rx='1'/%3E%3Crect x='2' y='42' width='8' height='4' rx='1'/%3E%3Crect x='54' y='18' width='8' height='4' rx='1'/%3E%3Crect x='54' y='30' width='8' height='4' rx='1'/%3E%3Crect x='54' y='42' width='8' height='4' rx='1'/%3E%3C/g%3E%3Crect x='8' y='8' width='48' height='48' rx='12' fill='%23a8192b'/%3E%3Crect x='16' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='25' y='24' width='7' height='16' rx='2' fill='%23f7dddc' fill-opacity='.35'/%3E%3Crect x='34' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='43' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3C/svg%3E">
+    <span class="etiqueta">Computadores · Tema 6 · 6.2 Biestables</span>
+  </div>
+  <h1>Biestable RS</h1>
+  <p>El <strong>biestable RS</strong> recibe su nombre porque tiene <strong>dos entradas</strong>: <i>set</i> (<code>S</code>, poner a 1) y <i>reset</i> (<code>R</code>, poner a 0).</p>
+  <p>Las <strong>salidas son también dos</strong>: <code>Q</code> y <code><span class="neg">Q</span></code>. En su funcionamiento normal, <strong>una debe ser la complementaria de la otra</strong>: si <code>Q = 1</code>, entonces <code><span class="neg">Q</span> = 0</code>, y al revés.</p>
+</header>
+
+<section>
+  <h2>Símbolo y tabla de verdad</h2>
+  <div class="prosa"><p>Elige una función, o pulsa una fila de la tabla, y mira cómo responde el biestable. <i>Q<sub>n</sub></i> es la salida antes de aplicar la entrada; <i>Q<sub>n+1</sub></i>, la salida después.</p></div>
+  <div class="panel">
+    <div class="funciones" id="funciones" role="group" aria-label="Función aplicada"></div>
+    <div class="vista">
+      <div class="circuito" id="simbolo"></div>
+      <div class="col">
+        <div class="tabla-wrap">
+          <table class="tabla-verdad" id="tabla-verdad">
+            <thead><tr><th>Función</th><th class="sep">R</th><th>S</th><th class="sep">Q<sub>n+1</sub></th><th><span class="neg">Q</span><sub>n+1</sub></th></tr></thead>
+            <tbody>
+              <tr data-rs="00"><td>Neutro</td><td class="sep">0</td><td>0</td><td class="sep">Q<sub>n</sub></td><td><span class="neg">Q</span><sub>n</sub></td></tr>
+              <tr data-rs="01"><td>Set</td><td class="sep">0</td><td>1</td><td class="sep">1</td><td>0</td></tr>
+              <tr data-rs="10"><td>Reset</td><td class="sep">1</td><td>0</td><td class="sep">0</td><td>1</td></tr>
+              <tr data-rs="11"><td>Inválido</td><td class="sep">1</td><td>1</td><td class="sep">?</td><td>?</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="lectura" id="lectura"></div>
+      </div>
+    </div>
+    <div id="aviso"></div>
+    <div class="subt">Construido con dos puertas NOR</div>
+    <div class="circuito" id="nor"></div>
+    <div class="fila"><button class="boton boton-discreto" id="b-reset">Empezar de nuevo con Q = 0</button></div>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Con dos puertas NOR</h2>
+  <p>Se puede construir un biestable RS con dos puertas NOR. La salida de cada puerta entra en la otra: la de arriba produce <code>Q</code> y recibe <code>R</code>; la de abajo produce <code><span class="neg">Q</span></code> y recibe <code>S</code>. Es el mismo circuito que vimos en <a href="biestable-rs.html">Realimentación</a>, ahora con sus dos salidas a la vista.</p>
+  <div class="nota nota-cuidado">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/></svg>
+    <div><b>Por qué R = S = 1 es inválido</b><div class="cuerpo">Una NOR da 0 en cuanto alguna de sus entradas vale 1, así que con <code>R = S = 1</code> las dos salidas valen 0: <code>Q</code> y <code><span class="neg">Q</span></code> dejan de ser complementarias. Y si después <code>R</code> y <code>S</code> vuelven a 0 a la vez, el estado final depende de qué puerta reaccione antes. Por eso la tabla pone «?».</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Diagrama de estados</h2>
+  <div class="prosa"><p>Los dos estados del biestable son <i>Q = 0</i> y <i>Q = 1</i>. Cada transición se etiqueta con la función y con <code>RS / Q</code>: los valores de <code>R</code> y <code>S</code> y la salida que resulta. La entrada inválida no aparece. La última transición del simulador se ve resaltada.</p></div>
+  <div class="marco-diag circuito">
+    <svg id="diag" viewBox="0 0 640 300" role="img" aria-label="Diagrama de estados del biestable RS con los estados Q=0 y Q=1 y las transiciones neutro, set y reset."></svg>
+  </div>
+</section>
+
+<section>
+  <h2>Practica con un cronograma</h2>
+  <div class="prosa"><p>Un cronograma muestra cómo evolucionan <code>Q</code> y <code><span class="neg">Q</span></code> cuando cambian <code>R</code> y <code>S</code>. Pulsa sobre las filas de <code>R</code> y <code>S</code> para cambiarlas. Las zonas doradas tienen la entrada inválida; las rayadas, un valor que no se puede predecir.</p></div>
+  <div class="panel">
+    <div class="circuito crono" id="crono"></div>
+    <div class="fila"><button class="boton boton-discreto" id="b-crono">Restaurar el ejemplo</button></div>
+    <div id="aviso-crono"></div>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Compruébalo</h2>
+  <div class="reto" id="reto"></div>
+  <p class="pie">Las respuestas se corrigen en la página; nada se envía a ningún sitio.</p>
+</section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var FUN = { '00':'Neutro', '01':'Set', '10':'Reset', '11':'Inválido' };
+  var v = function(x){ return 'v'+x; };
+  // texto con raya encima en SVG (Q negada)
+  function negado(x, y, txt, cls){ return '<text class="'+cls+'" x="'+x+'" y="'+y+'">'+txt+'</text><line class="raya" x1="'+(x+1)+'" y1="'+(y-19)+'" x2="'+(x+15)+'" y2="'+(y-19)+'"/>'; }
+
+  function puerta(x0, x1, cy){
+    var h = 30, L = x1-x0;
+    return '<path class="puerta" d="M'+x0+' '+(cy-h)+'Q'+(x0+15)+' '+cy+' '+x0+' '+(cy+h)+'Q'+(x0+L*0.6)+' '+(cy+h)+' '+x1+' '+cy+'Q'+(x0+L*0.6)+' '+(cy-h)+' '+x0+' '+(cy-h)+'Z"/><circle class="puerta" cx="'+(x1+6)+'" cy="'+cy+'" r="6"/>';
+  }
+  // biestable con dos NOR: arriba R y Q̄ → Q; abajo Q y S → Q̄
+  function nor(R, S, Q, Qn){
+    return '<svg viewBox="0 0 640 300" style="min-width:520px" role="img" aria-label="Biestable RS con dos puertas NOR: R='+R+', S='+S+', Q='+Q+', Q negada='+Qn+'.">'
+      + '<path class="cable '+v(R)+'" d="M80 70H266"/>'
+      + '<path class="cable '+v(S)+'" d="M80 250H266"/>'
+      + '<path class="cable '+v(Q)+'" d="M352 90H560"/><path class="cable '+v(Q)+'" d="M420 90V130L226 180V210H266"/>'
+      + '<path class="cable '+v(Qn)+'" d="M352 230H560"/><path class="cable '+v(Qn)+'" d="M420 230V190L226 140V110H266"/>'
+      + '<circle class="nudo '+v(Q)+'" cx="420" cy="90" r="4.5"/><circle class="nudo '+v(Qn)+'" cx="420" cy="230" r="4.5"/>'
+      + puerta(262, 340, 90) + puerta(262, 340, 230)
+      + '<text class="nombre" x="48" y="78">R</text><text class="nombre" x="48" y="258">S</text><text class="nombre" x="572" y="98">Q</text>' + negado(572, 238, 'Q', 'nombre')
+      + '<text class="valor '+v(R)+'" x="100" y="60">'+R+'</text><text class="valor '+v(S)+'" x="100" y="240">'+S+'</text>'
+      + '<text class="valor '+v(Q)+'" x="500" y="80">'+Q+'</text><text class="valor '+v(Qn)+'" x="500" y="220">'+Qn+'</text>'
+      + '</svg>';
+  }
+  function simbolo(R, S, Q, Qn){
+    return '<svg viewBox="0 0 300 220" role="img" aria-label="Símbolo del biestable RS: R='+R+', S='+S+', Q='+Q+', Q negada='+Qn+'." style="max-width:340px;margin:0 auto">'
+      + '<path class="cable '+v(R)+'" d="M30 70H100"/><path class="cable '+v(S)+'" d="M30 160H100"/>'
+      + '<path class="cable '+v(Q)+'" d="M200 70H270"/><path class="cable '+v(Qn)+'" d="M200 160H270"/>'
+      + '<rect class="caja-simb" x="100" y="30" width="100" height="170"/>'
+      + '<text class="pin" x="112" y="76">R</text><text class="pin" x="112" y="166">S</text><text class="pin" x="176" y="76">Q</text>'
+      + '<text class="pin" x="176" y="166">Q</text><line class="raya" x1="176" y1="149" x2="188" y2="149"/>'
+      + '<text class="valor '+v(R)+'" x="40" y="60">'+R+'</text><text class="valor '+v(S)+'" x="40" y="150">'+S+'</text>'
+      + '<text class="valor '+v(Q)+'" x="250" y="60">'+Q+'</text><text class="valor '+v(Qn)+'" x="250" y="150">'+Qn+'</text>'
+      + '</svg>';
+  }
+
+  // simulador: q es la salida Q guardada
+  var sim;
+  function reset(){ sim = { R:0, S:0, q:0, Q:0, Qn:1, qAntes:0, rs:'00', carrera:false, ultima:null }; render(); }
+  function aplica(rs){
+    var R = +rs[0], S = +rs[1], venia11 = sim.R && sim.S;
+    sim.qAntes = sim.Q; sim.carrera = false;
+    if (R && S){ sim.Q = 0; sim.Qn = 0; }
+    else {
+      if (S) sim.q = 1; else if (R) sim.q = 0;
+      else if (venia11){ sim.q = Math.random() < .5 ? 0 : 1; sim.carrera = true; }
+      sim.Q = sim.q; sim.Qn = 1 - sim.q;
+    }
+    sim.ultima = (R && S) || venia11 ? null : { s:sim.qAntes, rs:rs };
+    sim.R = R; sim.S = S; sim.rs = rs;
+    render();
+  }
+  function render(){
+    $('funciones').innerHTML = ['00','01','10','11'].map(function(k){ return '<button class="funcion" data-rs="'+k+'" aria-pressed="'+(k===sim.rs)+'">'+FUN[k]+' <code>'+k+'</code></button>'; }).join('');
+    $('simbolo').innerHTML = simbolo(sim.R, sim.S, sim.Q, sim.Qn);
+    $('nor').innerHTML = nor(sim.R, sim.S, sim.Q, sim.Qn);
+    var mal = sim.R && sim.S;
+    $('lectura').innerHTML = '<div class="dato"><span class="subt">Q<sub>n</sub></span><b>'+sim.qAntes+'</b></div>'
+      + '<div class="dato'+(mal?' mal':'')+'"><span class="subt">Q<sub>n+1</sub></span><b>'+sim.Q+'</b></div>'
+      + '<div class="dato'+(mal?' mal':'')+'"><span class="subt"><span class="neg">Q</span><sub>n+1</sub></span><b>'+sim.Qn+'</b></div>';
+    document.querySelectorAll('#tabla-verdad tbody tr').forEach(function(tr){ tr.classList.toggle('activa', tr.dataset.rs===sim.rs); });
+    var aviso = '';
+    if (mal) aviso = nota('cuidado', 'Entrada inválida', 'Q y <span class="neg">Q</span> valen 0 a la vez: ya no son complementarias. Si ahora pulsas <b>Neutro</b>, R y S bajan a la vez y el resultado no se puede predecir.');
+    else if (sim.carrera) aviso = nota('cuidado', 'Resultado impredecible', 'R y S han pasado de 1 a 0 a la vez. Esta vez el biestable ha quedado con Q = '+sim.Q+', pero podría haber quedado con el otro valor. Por eso la tabla pone «?».');
+    else if (sim.rs==='00') aviso = nota('idea', 'Neutro: memoria', 'Con R = S = 0 el biestable conserva lo que tenía: Q<sub>n+1</sub> = Q<sub>n</sub> = '+sim.Q+'.');
+    $('aviso').innerHTML = aviso;
+    diagrama();
+    document.querySelectorAll('#funciones .funcion').forEach(function(b){
+      b.addEventListener('click', function(){ aplica(b.dataset.rs); var n = document.querySelector('#funciones [data-rs="'+b.dataset.rs+'"]'); if (n) n.focus(); });
+    });
+  }
+  function nota(tipo, titulo, cuerpo){
+    var ico = tipo==='cuidado' ? '<path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/>' : '<path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/>';
+    return '<div class="nota nota-'+tipo+'" role="status"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ico+'</svg><div><b>'+titulo+'</b><div class="cuerpo">'+cuerpo+'</div></div></div>';
+  }
+  document.querySelectorAll('#tabla-verdad tbody tr').forEach(function(tr){ tr.addEventListener('click', function(){ aplica(tr.dataset.rs); }); });
+  $('b-reset').addEventListener('click', reset);
+
+  // diagrama de estados de la lección
+  var NODO = { 0:[220,150], 1:[420,150] };
+  var ARISTA = [
+    { s:0, rs:'00', d:'M204 109C180 50 120 80 178 136', l:[118,40] },
+    { s:0, rs:'10', d:'M178 164C120 220 180 250 204 191', l:[118,260] },
+    { s:0, rs:'01', d:'M250 118Q320 70 390 118', l:[320,62] },
+    { s:1, rs:'10', d:'M390 182Q320 230 250 182', l:[320,236] },
+    { s:1, rs:'00', d:'M436 109C460 50 520 80 462 136', l:[522,40] },
+    { s:1, rs:'01', d:'M462 164C520 220 460 250 436 191', l:[522,260] }
+  ];
+  function diagrama(){
+    var u = sim.ultima, out = '<defs><marker id="pr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="punta" d="M0 0L10 5L0 10z"/></marker><marker id="prv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path class="punta-v" d="M0 0L10 5L0 10z"/></marker></defs>';
+    ARISTA.forEach(function(a){
+      var act = u && u.s===a.s && u.rs===a.rs, q = a.rs==='01' ? 1 : a.rs==='10' ? 0 : a.s;
+      out += '<path class="arista'+(act?' activa':'')+'" d="'+a.d+'" marker-end="url(#'+(act?'prv':'pr')+')"/>'
+        + '<foreignObject x="'+(a.l[0]-80)+'" y="'+(a.l[1]-14)+'" width="160" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="fo'+(act?' activa':'')+'"><span class="p"><i>'+FUN[a.rs].toLowerCase()+'</i>'+a.rs+'/'+q+'</span></div></foreignObject>';
+    });
+    [0,1].forEach(function(s){
+      var p = NODO[s], act = !(sim.R && sim.S) && sim.Q===s;
+      out += '<circle class="nodo-e'+(act?' actual':'')+'" cx="'+p[0]+'" cy="'+p[1]+'" r="44"/><text class="nodo-e-txt" x="'+p[0]+'" y="'+(p[1]+8)+'" text-anchor="middle">Q='+s+'</text>';
+    });
+    $('diag').innerHTML = out;
+  }
+
+  // cronograma: 24 huecos, R y S editables; q puede ser 0, 1 o 'x' (impredecible)
+  var N = 24, X0 = 110, W = 24, FILA = 56;
+  var EJ_R = [], EJ_S = [];
+  for (var i=0;i<N;i++){ EJ_R.push((i>=9&&i<=11)||(i>=17&&i<=19) ? 1 : 0); EJ_S.push((i>=3&&i<=5)||(i>=15&&i<=18) ? 1 : 0); }
+  var cR = EJ_R.slice(), cS = EJ_S.slice();
+  function evolucion(){
+    var q = 0, Q = [], Qn = [], inv = [], x = false;
+    for (var i=0;i<N;i++){
+      var r = cR[i], s = cS[i], antes11 = i>0 && cR[i-1] && cS[i-1];
+      inv.push(r && s);
+      if (r && s){ Q.push(0); Qn.push(0); continue; }
+      if (s) q = 1; else if (r) q = 0; else if (antes11) { q = 'x'; x = true; }
+      Q.push(q); Qn.push(q==='x' ? 'x' : 1-q);
+    }
+    return { Q:Q, Qn:Qn, inv:inv, x:x };
+  }
+  function onda(vals, top, cls){
+    var Y = function(b){ return b ? top+10 : top+40; }, d = '', rects = '', pluma = false;
+    for (var i=0;i<N;i++){
+      var x = X0+i*W;
+      if (vals[i]==='x'){ rects += '<rect class="indet" x="'+x+'" y="'+(top+10)+'" width="'+W+'" height="30"/>'; pluma = false; continue; }
+      if (!pluma){ d += 'M'+x+' '+Y(vals[i]); pluma = true; }
+      else if (vals[i]!==vals[i-1]) d += 'V'+Y(vals[i]);
+      d += 'H'+(x+W);
+    }
+    return rects + '<path class="onda '+cls+'" d="'+d+'"/>';
+  }
+  function cronograma(){
+    var e = evolucion();
+    var filas = [ { n:'R', v:cR, c:'ent', k:'R' }, { n:'S', v:cS, c:'ent', k:'S' }, { n:'Q', v:e.Q, c:'q' }, { n:'Q̄', v:e.Qn, c:'qn' } ];
+    var alto = filas.length*FILA + 6;
+    var out = '<svg viewBox="0 0 '+(X0+N*W+10)+' '+alto+'" role="img" aria-label="Cronograma del biestable RS con las señales R, S, Q y Q negada."><defs><pattern id="rayado" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line class="rayado-l" x1="0" y1="0" x2="0" y2="6"/></pattern></defs>';
+    for (var i=0;i<N;i++) if (e.inv[i]) out += '<rect class="invalida" x="'+(X0+i*W)+'" y="0" width="'+W+'" height="'+alto+'"/>';
+    for (var i=0;i<=N;i+=1) out += '<line class="rejilla" x1="'+(X0+i*W)+'" y1="0" x2="'+(X0+i*W)+'" y2="'+alto+'"/>';
+    filas.forEach(function(f, k){
+      var top = k*FILA;
+      if (f.k) out += '<rect class="fondo-fila" x="'+X0+'" y="'+(top+4)+'" width="'+(N*W)+'" height="'+(FILA-8)+'" rx="4" style="opacity:.6"/>';
+      out += '<text class="etq-fila" x="8" y="'+(top+30)+'">'+(f.c==='qn' ? 'Q' : f.n)+'</text>' + (f.c==='qn' ? '<line class="raya" x1="9" y1="'+(top+15)+'" x2="19" y2="'+(top+15)+'"/>' : '')
+        + (f.k ? '<text class="etq-sub" x="8" y="'+(top+46)+'">pulsa para cambiar</text>' : '');
+      out += onda(f.v, top, f.c);
+      if (f.k) for (var i=0;i<N;i++) out += '<rect class="hueco" data-k="'+f.k+'" data-i="'+i+'" x="'+(X0+i*W)+'" y="'+(top+4)+'" width="'+W+'" height="'+(FILA-8)+'" tabindex="0" role="button" aria-label="Cambiar '+f.k+' en el instante '+i+'"/>';
+    });
+    out += '</svg>';
+    $('crono').innerHTML = out;
+    $('crono').querySelectorAll('.hueco').forEach(function(r){
+      var cambia = function(){ var a = r.dataset.k==='R' ? cR : cS, i = +r.dataset.i; a[i] = 1-a[i]; cronograma(); var n = $('crono').querySelector('.hueco[data-k="'+r.dataset.k+'"][data-i="'+i+'"]'); if (n) n.focus(); };
+      r.addEventListener('click', cambia);
+      r.addEventListener('keydown', function(ev){ if (ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); cambia(); } });
+    });
+    var hayInv = e.inv.some(Boolean);
+    $('aviso-crono').innerHTML = e.x
+      ? nota('cuidado', 'Valor impredecible', 'En algún instante R y S pasan de 1 a 0 a la vez. Desde ahí, Q no se puede predecir (zona rayada) hasta el siguiente set o reset.')
+      : hayInv ? nota('idea', 'Inválido, pero sin sorpresa', 'Durante la entrada inválida Q y <span class="neg">Q</span> valen 0. Como después R y S no bajan a la vez, el valor siguiente sí está determinado: lo fija la entrada que sigue a 1.')
+      : nota('idea', 'Todo determinado', 'Sin la entrada inválida, Q y <span class="neg">Q</span> son siempre complementarias.');
+  }
+  $('b-crono').addEventListener('click', function(){ cR = EJ_R.slice(); cS = EJ_S.slice(); cronograma(); });
+
+  reset();
+  aplica('01'); aplica('00');
+  cronograma();
+
+  var PREG = [
+    { q:'El biestable tiene <code>Q = 1</code> y aplicamos la función neutro (<code>R = 0</code>, <code>S = 0</code>). ¿Cuánto valen Q<sub>n+1</sub> y <span class="neg">Q</span><sub>n+1</sub>?', ops:['Q = 0, Q̄ = 1','Q = 1, Q̄ = 0','Q = 0, Q̄ = 0'], ok:1, exp:'Neutro conserva el valor: Q<sub>n+1</sub> = Q<sub>n</sub> = 1, y Q̄ sigue siendo su complementaria, 0.' },
+    { q:'¿Qué combinación de entradas pone la salida <code>Q</code> a 0?', ops:['R = 0, S = 1','R = 1, S = 0','R = 0, S = 0'], ok:1, exp:'R es reset: con R = 1 y S = 0, Q pasa a 0 y Q̄ a 1, sea cual sea el estado anterior.' },
+    { q:'Con <code>R = S = 1</code>, en el biestable de puertas NOR, ¿qué ocurre con las salidas?', ops:['Q = 1 y Q̄ = 1','Q = 0 y Q̄ = 0','Se mantienen'], ok:1, exp:'Las dos NOR tienen alguna entrada a 1, así que las dos dan 0: Q y Q̄ dejan de ser complementarias.' },
+    { q:'¿Por qué la tabla de verdad pone «?» en la fila inválida?', ops:['Porque el biestable se estropea','Porque al volver R y S a 0 a la vez, el estado final depende de qué puerta reaccione antes','Porque Q y Q̄ valen 1'], ok:1, exp:'Durante R = S = 1 las salidas valen 0, pero lo que queda después no se puede predecir si las dos entradas bajan a la vez.' },
+    { q:'En el diagrama de estados, ¿qué transición sale de <i>Q = 1</i> y llega a <i>Q = 0</i>?', ops:['neutro 00/1','set 01/1','reset 10/0'], ok:2, exp:'Solo reset (R = 1, S = 0) lleva de Q = 1 a Q = 0. Neutro y set dejan el biestable en Q = 1.' }
+  ];
+  var Rt = $('reto');
+  PREG.forEach(function(p, i){
+    var div = document.createElement('div'); div.className = 'pregunta';
+    div.innerHTML = '<div><span class="etiqueta etiqueta-neutra">Pregunta '+(i+1)+'</span></div><div>'+p.q+'</div><div class="opciones" role="group" aria-label="Opciones de la pregunta '+(i+1)+'">'+p.ops.map(function(o,j){ return '<button class="boton" data-j="'+j+'" aria-pressed="false">'+o+'</button>'; }).join('')+'</div><div class="feedback"></div>';
+    Rt.appendChild(div);
+    div.querySelectorAll('.opciones .boton').forEach(function(b){
+      b.addEventListener('click', function(){
+        div.querySelectorAll('.opciones .boton').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+        b.setAttribute('aria-pressed','true');
+        var ok = +b.dataset.j === p.ok;
+        div.querySelector('.feedback').innerHTML = '<div class="nota '+(ok?'nota-correcto':'nota-incorrecto')+'" role="status">'
+          + (ok ? '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l4 4 10-9"/></svg>' : '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l10 10M15 5 5 15"/></svg>')
+          + '<div><b>'+(ok?'Correcto':'Incorrecto')+'</b><div class="cuerpo">'+p.exp+'</div></div></div>';
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -10,3 +10,4 @@ Web: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
 | [conceptos-basicos-secuenciales.html](conceptos-basicos-secuenciales.html) | 6.1 · Circuitos secuenciales y estado: el niño como autómata |
 | [biestable-rs.html](biestable-rs.html) | 6.1 · Realimentación: el biestable RS con puertas NOR |
 | [circuitos-sincronos-reloj.html](circuitos-sincronos-reloj.html) | 6.1.2 · Circuitos síncronos y reloj: cronogramas, periodo y frecuencia |
+| [biestable-rs-simbolo-tabla.html](biestable-rs-simbolo-tabla.html) | 6.2.1 · Biestable RS: símbolo, tabla de verdad, puertas NOR, diagrama de estados y cronograma |
