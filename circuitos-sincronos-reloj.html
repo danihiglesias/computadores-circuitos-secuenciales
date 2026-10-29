@@ -381,8 +381,9 @@ tr.nuevo td { animation:aparece 600ms ease-out; }
   };
   var termActual = 'periodo';
   function anatomia(){
-    var YA = 80, YB = 160, d = 'M100 '+YB;
-    for (var x=100, b=0; x<600; x+=60, b=1-b){ d += (x>100 ? 'V'+(b?YA:YB) : '') + 'H'+(x+60); }
+    // tramos de 60: bajo 80-140, alto 140-200…; subidas en 140, 260, 380, 500 y bajadas en 200, 320, 440
+    var YA = 80, YB = 160, d = 'M80 '+YB;
+    for (var x=80, b=0; x<560; x+=60, b=1-b){ d += (x>80 ? 'V'+(b?YA:YB) : '') + 'H'+(x+60); }
     var r = '';
     if (termActual==='periodo') r = '<line class="realce" x1="260" y1="'+YA+'" x2="260" y2="'+YB+'" style="stroke-width:2"/><line class="realce" x1="380" y1="'+YA+'" x2="380" y2="'+YB+'" style="stroke-width:2"/><path class="realce" style="stroke-width:2" d="M266 46H374"/><path class="flecha-p" d="M260 46l10-5v10zM380 46l-10-5v10z"/><text class="realce-txt" x="320" y="34" text-anchor="middle">Periodo</text>';
     if (termActual==='alto') r = '<path class="realce" d="M380 '+YA+'H440"/><text class="realce-txt" x="410" y="'+(YA-14)+'" text-anchor="middle">Nivel alto</text>';
@@ -390,7 +391,7 @@ tr.nuevo td { animation:aparece 600ms ease-out; }
     if (termActual==='subida') r = '<path class="realce" d="M500 '+YB+'V'+YA+'"/><path class="flecha-p" d="M500 '+(YA-2)+'l-7 14h14z"/><text class="realce-txt" x="490" y="'+(YA-14)+'" text-anchor="end">Flanco de subida</text>';
     if (termActual==='bajada') r = '<path class="realce" d="M440 '+YA+'V'+YB+'"/><path class="flecha-p" d="M440 '+(YB+2)+'l-7 -14h14z"/><text class="realce-txt" x="450" y="'+(YB+26)+'">Flanco de bajada</text>';
     $('anatomia').innerHTML = '<svg viewBox="0 0 640 220" role="img" aria-label="Señal de reloj con '+TERM[termActual].n.toLowerCase()+' marcado.">'
-      + '<path class="eje" d="M70 60V190H620"/><path class="guia" d="M70 '+YA+'H100M70 '+YB+'H100"/>'
+      + '<path class="eje" d="M70 60V190H620"/><path class="guia" d="M70 '+YA+'H80M70 '+YB+'H80"/>'
       + '<text class="eje-txt" x="54" y="'+(YA+5)+'" text-anchor="middle">1</text><text class="eje-txt" x="54" y="'+(YB+5)+'" text-anchor="middle">0</text><text class="eje-txt" x="612" y="210">t</text>'
       + '<path class="onda clk" d="'+d+'"/>' + r + '</svg>';
     $('terminos').innerHTML = Object.keys(TERM).map(function(k){ return '<button class="pestana" role="tab" data-t="'+k+'" aria-selected="'+(k===termActual)+'">'+TERM[k].n+'</button>'; }).join('');
