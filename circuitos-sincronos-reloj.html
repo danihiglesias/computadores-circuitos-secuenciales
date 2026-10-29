@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Circuitos síncronos y reloj</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Lato:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+
+/* Layout: columna de lectura (68 ch) con el simulador a ancho completo; tema único claro del sistema Computadores */
+:root {
+  --papel:#f8f4ec; --papel-elevado:#ffffff; --papel-hundido:#efe8db; --piedra:#e3d9c8; --piedra-fuerte:#857869;
+  --tinta:#2a2420; --tinta-suave:#6b5f55;
+  --vitor:#a8192b; --vitor-suave:#f7dddc; --sobre-vitor:#ffffff;
+  --dorado:#d9a441; --dorado-texto:#8a5a0a; --dorado-suave:#fbeed2;
+  --centenario:#385e9d; --centenario-suave:#dde6f4; --sobre-centenario:#ffffff;
+  --correcto:#1f6f43; --correcto-suave:#dcefe2;
+  --incorrecto:var(--vitor); --incorrecto-suave:var(--vitor-suave);
+  --foco:var(--centenario);
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px; --space-8:64px;
+  --radius-sm:6px; --radius-md:12px; --radius-lg:20px; --radius-pill:999px;
+  --sombra-tarjeta:0 1px 2px rgba(42,36,32,.06), 0 4px 12px rgba(42,36,32,.06);
+  --font-display:"Bricolage Grotesque","Lato",system-ui,sans-serif;
+  --font-sans:"Lato",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+* { box-sizing:border-box; }
+body { background:var(--papel); color:var(--tinta); font-family:var(--font-sans); font-size:17px; line-height:27px; margin:0;
+  padding-block:var(--space-6) var(--space-8); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+.wrap { max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:var(--space-7); }
+.prosa { max-width:68ch; }
+.prosa p { margin:0 0 var(--space-4); }
+h1,h2,h3 { font-family:var(--font-display); text-wrap:balance; margin:0; }
+h1 { font-size:40px; line-height:44px; font-weight:700; letter-spacing:-.02em; margin:var(--space-2) 0 var(--space-4); }
+h2 { font-size:28px; line-height:34px; font-weight:600; letter-spacing:-.01em; margin-bottom:var(--space-4); display:inline-block; box-shadow:inset 0 -4px 0 var(--dorado); }
+h3 { font-size:20px; line-height:26px; font-weight:600; }
+.etiqueta { display:inline-flex; align-items:center; gap:var(--space-1); font-size:12px; line-height:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:2px var(--space-2); border-radius:var(--radius-pill); background:var(--vitor-suave); color:var(--vitor); }
+.etiqueta-neutra { background:var(--papel-hundido); color:var(--tinta-suave); }
+.cabecera { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+.cabecera img { width:40px; height:40px; }
+code { font-family:var(--font-mono); font-size:15px; background:var(--papel-hundido); padding:1px 6px; border-radius:var(--radius-sm); }
+
+.nota { display:grid; grid-template-columns:20px 1fr; gap:var(--space-3); padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-elevado); border:1px solid var(--piedra); font-size:15px; line-height:22px; max-width:68ch; }
+.nota svg { width:20px; height:20px; margin-top:1px; }
+.nota b { display:block; margin-bottom:2px; }
+.nota-idea { background:var(--centenario-suave); border-color:var(--centenario-suave); color:var(--centenario); }
+.nota-cuidado { background:var(--dorado-suave); border-color:var(--dorado-suave); color:var(--dorado-texto); }
+.nota-correcto { background:var(--correcto-suave); border-color:var(--correcto-suave); color:var(--correcto); }
+.nota-incorrecto { background:var(--incorrecto-suave); border-color:var(--incorrecto-suave); color:var(--incorrecto); }
+.nota .cuerpo { color:var(--tinta); }
+
+.panel { background:var(--papel-elevado); border-radius:var(--radius-lg); box-shadow:var(--sombra-tarjeta); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-5); }
+.grid2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-5); align-items:start; }
+@media (max-width:720px) { .grid2 { grid-template-columns:1fr; } }
+.col { display:flex; flex-direction:column; gap:var(--space-4); min-width:0; }
+.boton { font:700 15px/20px var(--font-sans); padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; display:inline-flex; align-items:center; gap:var(--space-2); }
+.boton-discreto { background:transparent; border-color:transparent; color:var(--vitor); }
+.boton:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.boton:hover { border-color:var(--vitor); }
+.fila { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; }
+.subt { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); }
+
+/* conjuntos I, O, S */
+.conjuntos { display:grid; gap:var(--space-3); }
+.conjunto { display:grid; grid-template-columns:56px 1fr; gap:var(--space-3); align-items:center; padding:var(--space-3) var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.conjunto .letra { font:600 30px/1 var(--font-display); font-style:italic; text-align:center; }
+.conjunto .letra small { display:block; font:700 11px/14px var(--font-sans); font-style:normal; letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); margin-top:4px; }
+.elementos { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; font-family:var(--font-mono); font-size:15px; }
+.elementos .llave { font-size:24px; color:var(--tinta-suave); }
+.el { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:var(--radius-pill); background:var(--papel-hundido); }
+.el svg { width:20px; height:20px; flex:none; }
+
+/* gestos */
+.gesto { font:700 13px/1 var(--font-mono); padding:3px 7px; border-radius:var(--radius-sm); display:inline-block; min-width:28px; text-align:center; }
+.g-R { background:var(--vitor-suave); color:var(--vitor); }
+.g-Ll { background:var(--centenario-suave); color:var(--centenario); }
+.g-0 { background:var(--correcto-suave); color:var(--correcto); }
+
+/* simulador */
+.nino { display:grid; grid-template-columns:auto 1fr; gap:var(--space-4); align-items:center; padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.cara { width:88px; height:88px; }
+.cara circle.c { fill:var(--dorado-suave); stroke:var(--tinta); stroke-width:1.4; }
+.cara .r { fill:none; stroke:var(--tinta); stroke-width:1.6; stroke-linecap:round; }
+.cara .o { fill:var(--tinta); }
+.cara .lagrima { fill:var(--centenario); }
+.nino .estado-txt { font:600 24px/30px var(--font-display); }
+.nino .estado-txt em { font-style:normal; color:var(--tinta-suave); font-size:15px; font-family:var(--font-sans); font-weight:400; display:block; line-height:20px; }
+.salida-grande { margin-top:var(--space-2); display:flex; align-items:center; gap:var(--space-2); font-size:15px; }
+.salida-grande .gesto { font-size:17px; padding:6px 12px; }
+.entradas .boton svg { width:22px; height:22px; }
+
+.tabla-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+th, td { padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--piedra); text-align:left; white-space:nowrap; }
+thead th { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); background:var(--papel-hundido); }
+td.t { font-family:var(--font-mono); color:var(--tinta-suave); font-variant-numeric:tabular-nums; }
+tr.nuevo td { background:var(--dorado-suave); }
+tr.choque td.ent { box-shadow:inset 3px 0 0 var(--vitor); }
+.transicion td, .transicion th { text-align:center; }
+.transicion tbody th { text-align:left; font-family:var(--font-display); font-size:16px; font-weight:600; background:var(--papel-hundido); }
+.transicion td.activa { background:var(--dorado); }
+.transicion td .sig { display:block; font-size:14px; color:var(--tinta-suave); }
+.transicion td.activa .sig { color:var(--tinta); }
+.transicion tr.fila-actual th { box-shadow:inset 3px 0 0 var(--vitor); }
+
+/* diagrama de bloques */
+.diagrama { overflow-x:auto; }
+.diagrama svg { display:block; width:100%; min-width:520px; height:auto; }
+.d-caja { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.d-mem { fill:var(--dorado-suave); stroke:var(--dorado-texto); stroke-width:1.5; }
+.d-linea { fill:none; stroke:var(--tinta); stroke-width:1.5; }
+.d-realim { fill:none; stroke:var(--vitor); stroke-width:1.8; }
+.d-txt { fill:var(--tinta); font-family:var(--font-display); font-size:17px; font-weight:600; }
+.d-sub { fill:var(--tinta-suave); font-family:var(--font-sans); font-size:13px; }
+.d-var { fill:var(--tinta); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-var-v { fill:var(--vitor); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-flecha { fill:var(--tinta); } .d-flecha-v { fill:var(--vitor); }
+
+/* diagrama de estados */
+#diag-estados { min-width:560px; }
+.arista { fill:none; stroke:var(--tinta-suave); stroke-width:1.6; }
+.e-lentejas { stroke-dasharray:none; } .e-bici { stroke-dasharray:8 6; } .e-futbol { stroke-dasharray:2 5; stroke-linecap:round; }
+.leyenda path { fill:none; stroke:var(--tinta-suave); stroke-width:1.8; }
+.leyenda path.e-act { stroke:var(--vitor); stroke-width:3; }
+.arista.activa { stroke:var(--vitor); stroke-width:3; }
+.etq { font-family:var(--font-mono); font-size:13px; font-weight:500; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:4px; stroke-linejoin:round; }
+.etq.activa { font-weight:700; }
+.etq .o-R { fill:var(--vitor); } .etq .o-Ll { fill:var(--centenario); } .etq .o-0 { fill:var(--correcto); }
+.nodo { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.nodo.actual { fill:var(--dorado-suave); stroke:var(--vitor); stroke-width:3; }
+.nodo-txt { font-family:var(--font-display); font-size:15px; font-weight:600; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:5px; stroke-linejoin:round; }
+.punta { fill:var(--tinta-suave); } .punta-v { fill:var(--vitor); }
+.ley { display:inline-flex; align-items:center; gap:6px; font-size:14px; }
+.ley svg { width:40px; height:8px; }
+.formula { font-family:var(--font-mono); font-size:16px; background:var(--papel-hundido); border-radius:var(--radius-sm); padding:var(--space-3) var(--space-4); display:grid; gap:4px; }
+.formula .v { color:var(--vitor); font-weight:600; }
+
+.comparativa { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); max-width:68ch; }
+@media (max-width:600px) { .comparativa { grid-template-columns:1fr; } }
+.tarjeta { border:1px solid var(--piedra); border-radius:var(--radius-md); padding:var(--space-4); background:var(--papel-elevado); font-size:15px; line-height:22px; }
+.tarjeta h3 { margin-bottom:var(--space-2); }
+.tarjeta ul { margin:0; padding-left:18px; } .tarjeta li { margin-bottom:4px; }
+
+.reto { display:grid; gap:var(--space-4); }
+.pregunta { display:grid; gap:var(--space-3); padding:var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.opciones { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+.opciones .boton[aria-pressed="true"] { background:var(--centenario); border-color:var(--centenario); color:var(--sobre-centenario); }
+.pie { font-size:13px; line-height:18px; color:var(--tinta-suave); }
+.nav-leccion { max-width:960px; margin:0 auto var(--space-5); display:flex; justify-content:space-between; gap:var(--space-3); font-size:14px; flex-wrap:wrap; color:var(--tinta-suave); }
+.nav-leccion a { color:var(--centenario); }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+@keyframes aparece { from { background:var(--dorado); } }
+tr.nuevo td { animation:aparece 600ms ease-out; }
+
+/* tipos de circuitos secuenciales: cronogramas y reloj */
+.crono { overflow-x:auto; }
+.crono svg { display:block; width:100%; min-width:620px; height:auto; }
+.onda { fill:none; stroke:var(--tinta); stroke-width:2; stroke-linejoin:round; }
+.onda.clk { stroke:var(--centenario); }
+.onda.ent { stroke:var(--tinta); }
+.onda.asin { stroke:var(--tinta-suave); }
+.onda.sinc { stroke:var(--vitor); stroke-width:2.6; }
+.fondo-fila { fill:var(--papel); }
+.hueco { fill:transparent; cursor:pointer; }
+.hueco:hover { fill:var(--dorado-suave); }
+.guia { stroke:var(--dorado); stroke-width:1.4; stroke-dasharray:3 4; }
+.etq-fila { font-family:var(--font-sans); font-size:14px; font-weight:700; fill:var(--tinta); }
+.etq-sub { font-family:var(--font-mono); font-size:11px; fill:var(--tinta-suave); }
+.eje { stroke:var(--tinta); stroke-width:1.4; fill:none; }
+.eje-txt { font-family:var(--font-mono); font-size:15px; fill:var(--tinta); }
+.realce { fill:none; stroke:var(--vitor); stroke-width:5; stroke-linecap:round; }
+.realce-txt { font-family:var(--font-sans); font-size:15px; font-weight:700; fill:var(--vitor); }
+.flecha-p { fill:var(--vitor); }
+.terminos { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+.pestana { font:700 15px/20px var(--font-sans); padding:var(--space-2) var(--space-3); border-radius:var(--radius-pill); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; }
+.pestana[aria-selected="true"] { background:var(--vitor); border-color:var(--vitor); color:var(--sobre-vitor); }
+.pestana:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.definicion { font-size:15px; line-height:22px; padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); max-width:68ch; }
+.control { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-3); font-size:15px; }
+.control input[type="range"] { accent-color:var(--vitor); width:180px; }
+.control output { font-family:var(--font-mono); font-weight:600; }
+.calc { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-4); align-items:start; }
+@media (max-width:640px) { .calc { grid-template-columns:1fr; } }
+.campo { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+.campo input, .campo select { font:600 17px/24px var(--font-mono); padding:var(--space-2) var(--space-3); border:1px solid var(--piedra-fuerte); border-radius:var(--radius-md); background:var(--papel-elevado); color:var(--tinta); }
+.campo input { width:9ch; }
+.campo input:focus-visible, .campo select:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.resultado { display:grid; gap:var(--space-2); }
+.resultado .dato { padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.resultado .dato b { display:block; font:600 22px/30px var(--font-mono); font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.resultado .dato span { font-size:14px; color:var(--tinta-suave); }
+.ecuacion { white-space:pre-wrap; font-family:var(--font-mono); font-size:18px; text-align:center; padding:var(--space-3); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.prefijos td, .prefijos th { font-family:var(--font-mono); }
+.prefijos th { font-family:var(--font-sans); }
+.tarjeta h3.asin-t { color:var(--tinta-suave); } .tarjeta h3.sinc-t { color:var(--vitor); }
+</style>
+</head>
+<body>
+
+<nav class="nav-leccion" aria-label="Navegación del tema"><a href="index.html">← Índice del tema 6</a><span>3 / 3</span><span><a href="biestable-rs.html">← Biestable RS</a></span></nav>
+<div class="wrap">
+<header class="prosa">
+  <div class="cabecera">
+    <img alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%236b5f55'%3E%3Crect x='18' y='2' width='4' height='8' rx='1'/%3E%3Crect x='30' y='2' width='4' height='8' rx='1'/%3E%3Crect x='42' y='2' width='4' height='8' rx='1'/%3E%3Crect x='18' y='54' width='4' height='8' rx='1'/%3E%3Crect x='30' y='54' width='4' height='8' rx='1'/%3E%3Crect x='42' y='54' width='4' height='8' rx='1'/%3E%3Crect x='2' y='18' width='8' height='4' rx='1'/%3E%3Crect x='2' y='30' width='8' height='4' rx='1'/%3E%3Crect x='2' y='42' width='8' height='4' rx='1'/%3E%3Crect x='54' y='18' width='8' height='4' rx='1'/%3E%3Crect x='54' y='30' width='8' height='4' rx='1'/%3E%3Crect x='54' y='42' width='8' height='4' rx='1'/%3E%3C/g%3E%3Crect x='8' y='8' width='48' height='48' rx='12' fill='%23a8192b'/%3E%3Crect x='16' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='25' y='24' width='7' height='16' rx='2' fill='%23f7dddc' fill-opacity='.35'/%3E%3Crect x='34' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='43' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3C/svg%3E">
+    <span class="etiqueta">Computadores · Tema 6</span>
+  </div>
+  <h1>Circuitos síncronos y reloj</h1>
+  <p>Podemos clasificar los circuitos secuenciales en <strong><i>síncronos</i></strong> y <strong><i>asíncronos</i></strong>. La diferencia está en <strong>cuándo</strong> cambia el estado.</p>
+</header>
+
+<section class="prosa">
+  <h2>Dos tipos</h2>
+  <div class="comparativa">
+    <div class="tarjeta">
+      <h3 class="asin-t">Asíncronos</h3>
+      <ul>
+        <li>Son los más generales.</li>
+        <li>El estado cambia en cuanto cambian las entradas, tras el retardo de las puertas.</li>
+        <li>Su comportamiento depende de esos retardos.</li>
+        <li>Ejemplo: el biestable RS del apartado anterior.</li>
+      </ul>
+    </div>
+    <div class="tarjeta">
+      <h3 class="sinc-t">Síncronos</h3>
+      <ul>
+        <li>Tienen una entrada especial: la <strong>señal de reloj</strong>.</li>
+        <li>El reloj <strong>gobierna las transiciones de estado</strong>: el estado solo cambia en instantes marcados por él.</li>
+        <li>Entre esos instantes, los cambios de las entradas no afectan al estado.</li>
+        <li>Ejemplo: el ordenador, visto de un modo muy general.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>El reloj manda</h2>
+  <div class="prosa">
+    <p>En la práctica es difícil conseguir retardos exactos en todos los circuitos de un mismo lote de fabricación: dos chips iguales pueden tardar algo distinto en reaccionar. Por eso <strong>lo más habitual son los circuitos secuenciales síncronos</strong>.</p>
+    <p>El cronograma muestra una entrada y el estado de tres circuitos que la siguen. Los dos asíncronos son chips del mismo lote con retardos distintos. El síncrono solo copia la entrada en cada <strong>flanco de subida</strong> del reloj (líneas doradas). Pulsa sobre la fila de la entrada para cambiarla y mueve el retardo del chip B.</p>
+  </div>
+  <div class="panel">
+    <div class="crono" id="crono"></div>
+    <div class="control">
+      <label for="retardo-b">Retardo del chip B</label>
+      <input type="range" id="retardo-b" min="0" max="3" step="1" value="2">
+      <output id="retardo-b-txt" for="retardo-b"></output>
+      <button class="boton boton-discreto" id="b-entrada">Restaurar la entrada de ejemplo</button>
+    </div>
+    <div id="aviso-crono"></div>
+  </div>
+</section>
+
+<section>
+  <h2>Anatomía de un cronograma</h2>
+  <div class="prosa"><p>Un <strong>cronograma</strong> es una representación gráfica del valor de diferentes señales de un circuito según transcurre el tiempo. El de la señal de reloj de un circuito síncrono tiene este aspecto. Elige un término para verlo marcado.</p></div>
+  <div class="panel">
+    <div class="terminos" role="tablist" aria-label="Partes de la señal de reloj" id="terminos"></div>
+    <div class="crono" id="anatomia"></div>
+    <div class="definicion" id="definicion" aria-live="polite"></div>
+  </div>
+</section>
+
+<section>
+  <h2>Periodo y frecuencia</h2>
+  <div class="prosa">
+    <p>El <strong>periodo</strong> <i>T</i> de la señal de reloj se mide en unidades de tiempo, segundos (s). Se suele usar su inverso, la <strong>frecuencia</strong> <i>f</i>, que se mide en s⁻¹, es decir, en hercios (Hz): cuántas veces oscila el reloj en un segundo.</p>
+    <div class="ecuacion">f = 1 / T        T = 1 / f</div>
+  </div>
+  <div class="panel" style="margin-top:var(--space-4)">
+    <div class="calc">
+      <div class="col">
+        <label class="subt" for="f-val">Frecuencia del reloj</label>
+        <div class="campo">
+          <input type="number" id="f-val" value="100" min="0" step="any" inputmode="decimal">
+          <select id="f-unit" aria-label="Unidad de frecuencia">
+            <option value="1">Hz</option><option value="1e3">kHz</option><option value="1e6" selected>MHz</option><option value="1e9">GHz</option>
+          </select>
+        </div>
+        <div class="tabla-wrap">
+          <table class="prefijos">
+            <thead><tr><th>Prefijo</th><th>Factor</th><th>Prefijo</th><th>Factor</th></tr></thead>
+            <tbody>
+              <tr><td>k (kilo)</td><td>10³</td><td>m (mili)</td><td>10⁻³</td></tr>
+              <tr><td>M (mega)</td><td>10⁶</td><td>µ (micro)</td><td>10⁻⁶</td></tr>
+              <tr><td>G (giga)</td><td>10⁹</td><td>n (nano)</td><td>10⁻⁹</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="resultado" aria-live="polite">
+        <div class="dato"><span>Oscilaciones en un segundo</span><b id="r-osc"></b></div>
+        <div class="dato"><span>Periodo T = 1 / f</span><b id="r-per"></b></div>
+      </div>
+    </div>
+  </div>
+  <div class="prosa" style="margin-top:var(--space-5)">
+    <div class="nota nota-idea">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/></svg>
+      <div><b>El ordenador, un circuito síncrono</b><div class="cuerpo">Podemos considerar al ordenador actual, de un modo muy general, como un circuito secuencial síncrono. La frecuencia que se anuncia en un procesador es la de su reloj: cuántas transiciones de estado puede dar en un segundo.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Compruébalo</h2>
+  <div class="reto" id="reto"></div>
+  <p class="pie">Las respuestas se corrigen en la página; nada se envía a ningún sitio.</p>
+</section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+
+  // cronograma: 32 huecos, el reloj está a 0 en los huecos 0-1 de cada periodo y a 1 en los 2-3
+  var N = 32, X0 = 170, W = 17, FILA = 54;
+  var EJEMPLO = (function(){ var v = []; for (var i=0;i<N;i++) v.push((i>=3&&i<=12)||(i>=19&&i<=20)||i>=25 ? 1 : 0); return v; })();
+  var entrada = EJEMPLO.slice();
+  var clk = []; for (var i=0;i<N;i++) clk.push(i%4>=2 ? 1 : 0);
+  var flancos = []; for (var i=1;i<N;i++) if (clk[i] && !clk[i-1]) flancos.push(i);
+
+  function retrasa(v, d){ return v.map(function(_, i){ return i-d >= 0 ? v[i-d] : 0; }); }
+  function sincrono(v){ var q = 0, out = []; for (var i=0;i<N;i++){ if (flancos.indexOf(i) >= 0) q = v[i-1]; out.push(q); } return out; }
+  function onda(v, top, cls){
+    var Y = function(b){ return b ? top+10 : top+38; };
+    var d = 'M'+X0+' '+Y(v[0]);
+    for (var i=0;i<N;i++){ if (i>0 && v[i]!==v[i-1]) d += 'V'+Y(v[i]); d += 'H'+(X0+(i+1)*W); }
+    return '<path class="onda '+cls+'" d="'+d+'"/>';
+  }
+  function cambios(v){ var c = []; for (var i=1;i<N;i++) if (v[i]!==v[i-1]) c.push(i); return c; }
+
+  function cronograma(){
+    var dB = +$('retardo-b').value;
+    var filas = [
+      { n:'Reloj', s:'clk', v:clk, c:'clk' },
+      { n:'Entrada', s:'pulsa para cambiar', v:entrada, c:'ent', clic:true },
+      { n:'Asíncrono · chip A', s:'retardo 1', v:retrasa(entrada,1), c:'asin' },
+      { n:'Asíncrono · chip B', s:'retardo '+dB, v:retrasa(entrada,dB), c:'asin' },
+      { n:'Síncrono · A y B', s:'cambia en el flanco', v:sincrono(entrada), c:'sinc' }
+    ];
+    var alto = filas.length*FILA + 10;
+    var out = '<svg viewBox="0 0 '+(X0+N*W+10)+' '+alto+'" role="img" aria-label="Cronograma con reloj, entrada, dos circuitos asíncronos y uno síncrono.">';
+    filas.forEach(function(f, k){
+      var top = k*FILA;
+      if (f.clic) out += '<rect class="fondo-fila" x="'+X0+'" y="'+(top+4)+'" width="'+(N*W)+'" height="'+(FILA-8)+'" rx="4"/>';
+      out += '<text class="etq-fila" x="0" y="'+(top+26)+'">'+f.n+'</text><text class="etq-sub" x="0" y="'+(top+42)+'">'+f.s+'</text>';
+    });
+    flancos.forEach(function(e){ out += '<line class="guia" x1="'+(X0+e*W)+'" y1="0" x2="'+(X0+e*W)+'" y2="'+(alto-6)+'"/>'; });
+    filas.forEach(function(f, k){ out += onda(f.v, k*FILA, f.c); });
+    for (var i=0;i<N;i++) out += '<rect class="hueco" data-i="'+i+'" x="'+(X0+i*W)+'" y="'+(FILA+4)+'" width="'+W+'" height="'+(FILA-8)+'" tabindex="0" role="button" aria-label="Cambiar la entrada en el instante '+i+'"/>';
+    out += '</svg>';
+    $('crono').innerHTML = out;
+    $('retardo-b-txt').textContent = dB + (dB===1 ? ' hueco' : ' huecos');
+    $('crono').querySelectorAll('.hueco').forEach(function(r){
+      var cambia = function(){ var i = +r.dataset.i; entrada[i] = 1-entrada[i]; cronograma(); var n = $('crono').querySelector('.hueco[data-i="'+i+'"]'); if (n) n.focus(); };
+      r.addEventListener('click', cambia);
+      r.addEventListener('keydown', function(ev){ if (ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); cambia(); } });
+    });
+    // aviso: pulsos que el síncrono no ve y desfase entre chips asíncronos
+    var A = retrasa(entrada,1), B = retrasa(entrada,dB), S = sincrono(entrada);
+    var difAB = A.some(function(x,i){ return x!==B[i]; });
+    var perdido = cambios(entrada).length > cambios(S).length;
+    var txt = [];
+    if (difAB) txt.push('Los dos chips asíncronos no coinciden: el estado de cada uno cambia en un instante distinto. Si otro circuito leyera su estado, el resultado dependería de qué chip le hubiera tocado.');
+    else txt.push('Con el mismo retardo, los dos chips asíncronos coinciden. Pero en un lote real no se puede garantizar que todos tengan el mismo.');
+    txt.push(perdido ? 'El síncrono es igual en los dos chips y ignora los cambios de la entrada que no llegan a un flanco de subida, como el pulso corto del ejemplo.' : 'El síncrono es igual en los dos chips: solo cambia en los flancos de subida.');
+    $('aviso-crono').innerHTML = '<div class="nota nota-idea" role="status"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/></svg><div><b>Qué se ve</b><div class="cuerpo">'+txt.join(' ')+'</div></div></div>';
+  }
+  $('retardo-b').addEventListener('input', cronograma);
+  $('b-entrada').addEventListener('click', function(){ entrada = EJEMPLO.slice(); cronograma(); });
+  cronograma();
+
+  // anatomía de la señal de reloj
+  var TERM = {
+    periodo:{ n:'Periodo', def:'Tiempo entre dos flancos iguales consecutivos, por ejemplo dos de subida. Después de un periodo la señal se repite. Se mide en segundos.' },
+    alto:{ n:'Nivel alto', def:'Intervalo en el que el reloj vale 1.' },
+    bajo:{ n:'Nivel bajo', def:'Intervalo en el que el reloj vale 0.' },
+    subida:{ n:'Flanco de subida', def:'Instante en que el reloj pasa de 0 a 1. En muchos circuitos síncronos es el momento en que cambia el estado.' },
+    bajada:{ n:'Flanco de bajada', def:'Instante en que el reloj pasa de 1 a 0. Algunos circuitos síncronos cambian de estado en este flanco en lugar de en el de subida.' }
+  };
+  var termActual = 'periodo';
+  function anatomia(){
+    var YA = 80, YB = 160, d = 'M100 '+YB;
+    for (var x=100, b=0; x<600; x+=60, b=1-b){ d += (x>100 ? 'V'+(b?YA:YB) : '') + 'H'+(x+60); }
+    var r = '';
+    if (termActual==='periodo') r = '<line class="realce" x1="260" y1="'+YA+'" x2="260" y2="'+YB+'" style="stroke-width:2"/><line class="realce" x1="380" y1="'+YA+'" x2="380" y2="'+YB+'" style="stroke-width:2"/><path class="realce" style="stroke-width:2" d="M266 46H374"/><path class="flecha-p" d="M260 46l10-5v10zM380 46l-10-5v10z"/><text class="realce-txt" x="320" y="34" text-anchor="middle">Periodo</text>';
+    if (termActual==='alto') r = '<path class="realce" d="M380 '+YA+'H440"/><text class="realce-txt" x="410" y="'+(YA-14)+'" text-anchor="middle">Nivel alto</text>';
+    if (termActual==='bajo') r = '<path class="realce" d="M440 '+YB+'H500"/><text class="realce-txt" x="470" y="'+(YB+26)+'" text-anchor="middle">Nivel bajo</text>';
+    if (termActual==='subida') r = '<path class="realce" d="M500 '+YB+'V'+YA+'"/><path class="flecha-p" d="M500 '+(YA-2)+'l-7 14h14z"/><text class="realce-txt" x="490" y="'+(YA-14)+'" text-anchor="end">Flanco de subida</text>';
+    if (termActual==='bajada') r = '<path class="realce" d="M440 '+YA+'V'+YB+'"/><path class="flecha-p" d="M440 '+(YB+2)+'l-7 -14h14z"/><text class="realce-txt" x="450" y="'+(YB+26)+'">Flanco de bajada</text>';
+    $('anatomia').innerHTML = '<svg viewBox="0 0 640 220" role="img" aria-label="Señal de reloj con '+TERM[termActual].n.toLowerCase()+' marcado.">'
+      + '<path class="eje" d="M70 60V190H620"/><path class="guia" d="M70 '+YA+'H100M70 '+YB+'H100"/>'
+      + '<text class="eje-txt" x="54" y="'+(YA+5)+'" text-anchor="middle">1</text><text class="eje-txt" x="54" y="'+(YB+5)+'" text-anchor="middle">0</text><text class="eje-txt" x="612" y="210">t</text>'
+      + '<path class="onda clk" d="'+d+'"/>' + r + '</svg>';
+    $('terminos').innerHTML = Object.keys(TERM).map(function(k){ return '<button class="pestana" role="tab" data-t="'+k+'" aria-selected="'+(k===termActual)+'">'+TERM[k].n+'</button>'; }).join('');
+    $('definicion').innerHTML = '<b>'+TERM[termActual].n+'.</b> '+TERM[termActual].def;
+    $('terminos').querySelectorAll('.pestana').forEach(function(b){
+      b.addEventListener('click', function(){ termActual = b.dataset.t; anatomia(); $('terminos').querySelector('[data-t="'+termActual+'"]').focus(); });
+    });
+  }
+  anatomia();
+
+  // calculadora de periodo y frecuencia
+  function fmt(x){ return x.toLocaleString('es-ES', { maximumSignificantDigits:4 }); }
+  function calcula(){
+    var f = parseFloat(String($('f-val').value).replace(',', '.')) * +$('f-unit').value;
+    if (!(f > 0)) { $('r-osc').textContent = 'Escribe una frecuencia mayor que 0'; $('r-per').textContent = '—'; return; }
+    var exp = Math.floor(Math.log10(f)), osc = f >= 1e4 ? fmt(f/Math.pow(10,exp))+' · 10'+String(exp).replace(/./g, function(c){ return '⁰¹²³⁴⁵⁶⁷⁸⁹'[+c]; }) : fmt(f);
+    $('r-osc').textContent = osc + ' veces';
+    var T = 1/f, U = [[1,'s'],[1e-3,'ms'],[1e-6,'µs'],[1e-9,'ns'],[1e-12,'ps']], u = U[U.length-1];
+    for (var i=0;i<U.length;i++) if (T >= U[i][0]*0.9999) { u = U[i]; break; }
+    $('r-per').textContent = fmt(T/u[0]) + ' ' + u[1];
+  }
+  $('f-val').addEventListener('input', calcula); $('f-unit').addEventListener('change', calcula);
+  calcula();
+
+  var PREG = [
+    { q:'¿Cuántas veces oscila en un segundo un reloj cuya frecuencia es de 2 GHz?', ops:['2 · 10⁶ veces','2 · 10⁹ veces','2 · 10¹² veces'], ok:1, exp:'Giga es 10⁹, y 1 Hz es una oscilación por segundo: 2 GHz son 2 · 10⁹ oscilaciones por segundo. Puedes comprobarlo en la calculadora.' },
+    { q:'¿Qué periodo tiene ese reloj de 2 GHz?', ops:['2 ns','0,5 ns','0,5 µs'], ok:1, exp:'T = 1 / f = 1 / (2 · 10⁹ Hz) = 0,5 · 10⁻⁹ s = 0,5 ns, es decir, 500 ps.' },
+    { q:'¿Qué gobierna las transiciones de estado en un circuito secuencial síncrono?', ops:['Los retardos de las puertas','La señal de reloj','Los cambios de las entradas'], ok:1, exp:'En un circuito síncrono el estado solo cambia en los instantes marcados por el reloj, normalmente sus flancos de subida.' },
+    { q:'¿Por qué son más habituales los circuitos síncronos?', ops:['Porque son más generales','Porque no dependen de que todos los chips del lote tengan exactamente el mismo retardo','Porque no necesitan memoria'], ok:1, exp:'Los asíncronos son más generales, pero su comportamiento depende de retardos que no se pueden garantizar en fabricación. El reloj elimina esa dependencia.' },
+    { q:'En un cronograma de reloj, el paso de 0 a 1 se llama…', ops:['Flanco de subida','Flanco de bajada','Nivel alto'], ok:0, exp:'El flanco de subida es la transición de 0 a 1; el de bajada, de 1 a 0. Los niveles son los tramos en que la señal se mantiene.' }
+  ];
+  var Rt = $('reto');
+  PREG.forEach(function(p, i){
+    var div = document.createElement('div'); div.className = 'pregunta';
+    div.innerHTML = '<div><span class="etiqueta etiqueta-neutra">Pregunta '+(i+1)+'</span></div><div>'+p.q+'</div><div class="opciones" role="group" aria-label="Opciones de la pregunta '+(i+1)+'">'+p.ops.map(function(o,j){ return '<button class="boton" data-j="'+j+'" aria-pressed="false">'+o+'</button>'; }).join('')+'</div><div class="feedback"></div>';
+    Rt.appendChild(div);
+    div.querySelectorAll('.opciones .boton').forEach(function(b){
+      b.addEventListener('click', function(){
+        div.querySelectorAll('.opciones .boton').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+        b.setAttribute('aria-pressed','true');
+        var ok = +b.dataset.j === p.ok;
+        div.querySelector('.feedback').innerHTML = '<div class="nota '+(ok?'nota-correcto':'nota-incorrecto')+'" role="status">'
+          + (ok ? '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l4 4 10-9"/></svg>' : '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l10 10M15 5 5 15"/></svg>')
+          + '<div><b>'+(ok?'Correcto':'Incorrecto')+'</b><div class="cuerpo">'+p.exp+'</div></div></div>';
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
