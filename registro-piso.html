@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Registro PISO</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Lato:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+
+/* Layout: columna de lectura (68 ch) con el simulador a ancho completo; tema único claro del sistema Computadores */
+:root {
+  --papel:#f8f4ec; --papel-elevado:#ffffff; --papel-hundido:#efe8db; --piedra:#e3d9c8; --piedra-fuerte:#857869;
+  --tinta:#2a2420; --tinta-suave:#6b5f55;
+  --vitor:#a8192b; --vitor-suave:#f7dddc; --sobre-vitor:#ffffff;
+  --dorado:#d9a441; --dorado-texto:#8a5a0a; --dorado-suave:#fbeed2;
+  --centenario:#385e9d; --centenario-suave:#dde6f4; --sobre-centenario:#ffffff;
+  --correcto:#1f6f43; --correcto-suave:#dcefe2;
+  --incorrecto:var(--vitor); --incorrecto-suave:var(--vitor-suave);
+  --foco:var(--centenario);
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px; --space-8:64px;
+  --radius-sm:6px; --radius-md:12px; --radius-lg:20px; --radius-pill:999px;
+  --sombra-tarjeta:0 1px 2px rgba(42,36,32,.06), 0 4px 12px rgba(42,36,32,.06);
+  --font-display:"Bricolage Grotesque","Lato",system-ui,sans-serif;
+  --font-sans:"Lato",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+* { box-sizing:border-box; }
+body { background:var(--papel); color:var(--tinta); font-family:var(--font-sans); font-size:17px; line-height:27px; margin:0;
+  padding-block:var(--space-6) var(--space-8); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+.wrap { max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:var(--space-7); }
+.prosa { max-width:68ch; }
+.prosa p { margin:0 0 var(--space-4); }
+h1,h2,h3 { font-family:var(--font-display); text-wrap:balance; margin:0; }
+h1 { font-size:40px; line-height:44px; font-weight:700; letter-spacing:-.02em; margin:var(--space-2) 0 var(--space-4); }
+h2 { font-size:28px; line-height:34px; font-weight:600; letter-spacing:-.01em; margin-bottom:var(--space-4); display:inline-block; box-shadow:inset 0 -4px 0 var(--dorado); }
+h3 { font-size:20px; line-height:26px; font-weight:600; }
+.etiqueta { display:inline-flex; align-items:center; gap:var(--space-1); font-size:12px; line-height:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:2px var(--space-2); border-radius:var(--radius-pill); background:var(--vitor-suave); color:var(--vitor); }
+.etiqueta-neutra { background:var(--papel-hundido); color:var(--tinta-suave); }
+.cabecera { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+.cabecera img { width:40px; height:40px; }
+code { font-family:var(--font-mono); font-size:15px; background:var(--papel-hundido); padding:1px 6px; border-radius:var(--radius-sm); }
+
+.nota { display:grid; grid-template-columns:20px 1fr; gap:var(--space-3); padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-elevado); border:1px solid var(--piedra); font-size:15px; line-height:22px; max-width:68ch; }
+.nota svg { width:20px; height:20px; margin-top:1px; }
+.nota b { display:block; margin-bottom:2px; }
+.nota-idea { background:var(--centenario-suave); border-color:var(--centenario-suave); color:var(--centenario); }
+.nota-cuidado { background:var(--dorado-suave); border-color:var(--dorado-suave); color:var(--dorado-texto); }
+.nota-correcto { background:var(--correcto-suave); border-color:var(--correcto-suave); color:var(--correcto); }
+.nota-incorrecto { background:var(--incorrecto-suave); border-color:var(--incorrecto-suave); color:var(--incorrecto); }
+.nota .cuerpo { color:var(--tinta); }
+
+.panel { background:var(--papel-elevado); border-radius:var(--radius-lg); box-shadow:var(--sombra-tarjeta); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-5); }
+.grid2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-5); align-items:start; }
+@media (max-width:720px) { .grid2 { grid-template-columns:1fr; } }
+.col { display:flex; flex-direction:column; gap:var(--space-4); min-width:0; }
+.boton { font:700 15px/20px var(--font-sans); padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; display:inline-flex; align-items:center; gap:var(--space-2); }
+.boton-discreto { background:transparent; border-color:transparent; color:var(--vitor); }
+.boton:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.boton:hover { border-color:var(--vitor); }
+.fila { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; }
+.subt { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); }
+
+/* conjuntos I, O, S */
+.conjuntos { display:grid; gap:var(--space-3); }
+.conjunto { display:grid; grid-template-columns:56px 1fr; gap:var(--space-3); align-items:center; padding:var(--space-3) var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.conjunto .letra { font:600 30px/1 var(--font-display); font-style:italic; text-align:center; }
+.conjunto .letra small { display:block; font:700 11px/14px var(--font-sans); font-style:normal; letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); margin-top:4px; }
+.elementos { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; font-family:var(--font-mono); font-size:15px; }
+.elementos .llave { font-size:24px; color:var(--tinta-suave); }
+.el { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:var(--radius-pill); background:var(--papel-hundido); }
+.el svg { width:20px; height:20px; flex:none; }
+
+/* gestos */
+.gesto { font:700 13px/1 var(--font-mono); padding:3px 7px; border-radius:var(--radius-sm); display:inline-block; min-width:28px; text-align:center; }
+.g-R { background:var(--vitor-suave); color:var(--vitor); }
+.g-Ll { background:var(--centenario-suave); color:var(--centenario); }
+.g-0 { background:var(--correcto-suave); color:var(--correcto); }
+
+/* simulador */
+.nino { display:grid; grid-template-columns:auto 1fr; gap:var(--space-4); align-items:center; padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.cara { width:88px; height:88px; }
+.cara circle.c { fill:var(--dorado-suave); stroke:var(--tinta); stroke-width:1.4; }
+.cara .r { fill:none; stroke:var(--tinta); stroke-width:1.6; stroke-linecap:round; }
+.cara .o { fill:var(--tinta); }
+.cara .lagrima { fill:var(--centenario); }
+.nino .estado-txt { font:600 24px/30px var(--font-display); }
+.nino .estado-txt em { font-style:normal; color:var(--tinta-suave); font-size:15px; font-family:var(--font-sans); font-weight:400; display:block; line-height:20px; }
+.salida-grande { margin-top:var(--space-2); display:flex; align-items:center; gap:var(--space-2); font-size:15px; }
+.salida-grande .gesto { font-size:17px; padding:6px 12px; }
+.entradas .boton svg { width:22px; height:22px; }
+
+.tabla-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+th, td { padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--piedra); text-align:left; white-space:nowrap; }
+thead th { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); background:var(--papel-hundido); }
+td.t { font-family:var(--font-mono); color:var(--tinta-suave); font-variant-numeric:tabular-nums; }
+tr.nuevo td { background:var(--dorado-suave); }
+tr.choque td.ent { box-shadow:inset 3px 0 0 var(--vitor); }
+.transicion td, .transicion th { text-align:center; }
+.transicion tbody th { text-align:left; font-family:var(--font-display); font-size:16px; font-weight:600; background:var(--papel-hundido); }
+.transicion td.activa { background:var(--dorado); }
+.transicion td .sig { display:block; font-size:14px; color:var(--tinta-suave); }
+.transicion td.activa .sig { color:var(--tinta); }
+.transicion tr.fila-actual th { box-shadow:inset 3px 0 0 var(--vitor); }
+
+/* diagrama de bloques */
+.diagrama { overflow-x:auto; }
+.diagrama svg { display:block; width:100%; min-width:520px; height:auto; }
+.d-caja { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.d-mem { fill:var(--dorado-suave); stroke:var(--dorado-texto); stroke-width:1.5; }
+.d-linea { fill:none; stroke:var(--tinta); stroke-width:1.5; }
+.d-realim { fill:none; stroke:var(--vitor); stroke-width:1.8; }
+.d-txt { fill:var(--tinta); font-family:var(--font-display); font-size:17px; font-weight:600; }
+.d-sub { fill:var(--tinta-suave); font-family:var(--font-sans); font-size:13px; }
+.d-var { fill:var(--tinta); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-var-v { fill:var(--vitor); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-flecha { fill:var(--tinta); } .d-flecha-v { fill:var(--vitor); }
+
+/* diagrama de estados */
+#diag-estados { min-width:560px; }
+.arista { fill:none; stroke:var(--tinta-suave); stroke-width:1.6; }
+.e-lentejas { stroke-dasharray:none; } .e-bici { stroke-dasharray:8 6; } .e-futbol { stroke-dasharray:2 5; stroke-linecap:round; }
+.leyenda path { fill:none; stroke:var(--tinta-suave); stroke-width:1.8; }
+.leyenda path.e-act { stroke:var(--vitor); stroke-width:3; }
+.arista.activa { stroke:var(--vitor); stroke-width:3; }
+.etq { font-family:var(--font-mono); font-size:13px; font-weight:500; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:4px; stroke-linejoin:round; }
+.etq.activa { font-weight:700; }
+.etq .o-R { fill:var(--vitor); } .etq .o-Ll { fill:var(--centenario); } .etq .o-0 { fill:var(--correcto); }
+.nodo { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.nodo.actual { fill:var(--dorado-suave); stroke:var(--vitor); stroke-width:3; }
+.nodo-txt { font-family:var(--font-display); font-size:15px; font-weight:600; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:5px; stroke-linejoin:round; }
+.punta { fill:var(--tinta-suave); } .punta-v { fill:var(--vitor); }
+.ley { display:inline-flex; align-items:center; gap:6px; font-size:14px; }
+.ley svg { width:40px; height:8px; }
+.formula { font-family:var(--font-mono); font-size:16px; background:var(--papel-hundido); border-radius:var(--radius-sm); padding:var(--space-3) var(--space-4); display:grid; gap:4px; }
+.formula .v { color:var(--vitor); font-weight:600; }
+
+.comparativa { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); max-width:68ch; }
+@media (max-width:600px) { .comparativa { grid-template-columns:1fr; } }
+.tarjeta { border:1px solid var(--piedra); border-radius:var(--radius-md); padding:var(--space-4); background:var(--papel-elevado); font-size:15px; line-height:22px; }
+.tarjeta h3 { margin-bottom:var(--space-2); }
+.tarjeta ul { margin:0; padding-left:18px; } .tarjeta li { margin-bottom:4px; }
+
+.reto { display:grid; gap:var(--space-4); }
+.pregunta { display:grid; gap:var(--space-3); padding:var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.opciones { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+.opciones .boton[aria-pressed="true"] { background:var(--centenario); border-color:var(--centenario); color:var(--sobre-centenario); }
+.pie { font-size:13px; line-height:18px; color:var(--tinta-suave); }
+.nav-leccion { max-width:960px; margin:0 auto var(--space-5); display:flex; justify-content:space-between; gap:var(--space-3); font-size:14px; flex-wrap:wrap; color:var(--tinta-suave); }
+.nav-leccion a { color:var(--centenario); }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+@keyframes aparece { from { background:var(--dorado); } }
+tr.nuevo td { animation:aparece 600ms ease-out; }
+
+/* 6.3 registro PISO con biestables RS: selector S/P, entrada serie I (SISO o PISO) y habilitación de reloj CE */
+.circuito { overflow-x:auto; }
+.circuito svg { display:block; width:100%; height:auto; }
+.puerta { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.cable { fill:none; stroke-width:1.8; stroke-linejoin:round; }
+.cable.v0 { stroke:var(--tinta-suave); } .cable.v1 { stroke:var(--vitor); stroke-width:2.6; }
+.nudo.v0 { fill:var(--tinta-suave); } .nudo.v1 { fill:var(--vitor); }
+.caja-simb { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.8; }
+.burbuja { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.4; }
+.raya { stroke:var(--tinta); stroke-width:1.5; fill:none; }
+.pin { font-family:var(--font-sans); font-size:13px; fill:var(--tinta); }
+.etq { font-family:var(--font-sans); font-size:17px; font-weight:700; fill:var(--tinta); }
+.valor { font-family:var(--font-mono); font-size:13px; font-weight:600; }
+.valor.v0 { fill:var(--tinta-suave); } .valor.v1 { fill:var(--vitor); }
+.celda-bit { font:600 26px var(--font-mono); }
+.celda-bit.v0 { fill:var(--tinta-suave); } .celda-bit.v1 { fill:var(--vitor); }
+.controles { display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:center; }
+.grupo { display:inline-flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; padding:var(--space-2) var(--space-3); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.grupo .rotulo { font:700 13px var(--font-sans); color:var(--tinta-suave); letter-spacing:.06em; text-transform:uppercase; }
+.bitbtn { font:600 17px/1 var(--font-mono); min-width:40px; height:38px; padding:0 8px; display:inline-grid; place-items:center; border-radius:var(--radius-sm); background:var(--papel-elevado); border:1px solid var(--piedra-fuerte); color:var(--tinta); cursor:pointer; }
+.bitbtn.uno { background:var(--vitor); border-color:var(--vitor); color:var(--sobre-vitor); }
+.bitbtn small { font:600 11px var(--font-sans); margin-right:4px; }
+.bitbtn:focus-visible, .boton:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.boton-reloj { background:var(--centenario); border-color:var(--centenario); color:var(--sobre-centenario); }
+.modo { font:700 15px var(--font-sans); padding:4px 10px; border-radius:var(--radius-pill); }
+.modo.carga { background:var(--dorado-suave); color:var(--dorado-texto); }
+.modo.desplaza { background:var(--centenario-suave); color:var(--centenario); }
+.marco-tabla { background:var(--centenario-suave); border-radius:var(--radius-lg); padding:var(--space-3) var(--space-4); overflow-x:auto; }
+.tabla-piso { font-family:var(--font-mono); font-size:16px; border-collapse:collapse; width:auto; margin:0 auto; }
+.tabla-piso th, .tabla-piso td { border:none; padding:4px 9px; text-align:center; white-space:nowrap; }
+.tabla-piso th { font:700 16px var(--font-mono); background:transparent; letter-spacing:0; text-transform:none; color:var(--correcto); }
+.tabla-piso th.sal { color:var(--vitor); }
+.tabla-piso td.accion { font-family:var(--font-sans); font-size:13px; text-align:left; color:var(--tinta-suave); }
+.tabla-piso td.flecha { color:var(--vitor); }
+.tabla-piso td.q { background:var(--papel-elevado); font-weight:600; color:var(--tinta); }
+.tabla-piso td.q.dato { color:var(--correcto); }
+.tabla-piso tr.carga td.q { background:var(--dorado-suave); }
+.tabla-piso td.o { text-align:left; color:var(--vitor); }
+.lectura { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:var(--space-3); }
+@media (max-width:560px) { .lectura { grid-template-columns:1fr; } }
+.dato { padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); min-width:0; }
+.dato .subt { display:block; }
+.dato b { font:600 20px/28px var(--font-mono); overflow-wrap:anywhere; }
+.modos-sp { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-3); max-width:68ch; }
+@media (max-width:560px) { .modos-sp { grid-template-columns:1fr; } }
+.modo-sp { padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); background:var(--papel-elevado); border:1px solid var(--piedra); font-size:15px; line-height:22px; }
+.modo-sp b { display:block; font-family:var(--font-mono); font-size:16px; margin-bottom:4px; }
+.modo-sp code { font-size:14px; }
+.neg { text-decoration:overline; text-decoration-thickness:1.5px; }
+</style>
+</head>
+<body>
+
+<nav class="nav-leccion" aria-label="Navegación del tema"><a href="index.html">← Índice del tema 6</a><span>13 / 13</span><span><a href="registro-sipo.html">← Registro SIPO</a></span></nav>
+<div class="wrap">
+<header class="prosa">
+  <div class="cabecera">
+    <img alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%236b5f55'%3E%3Crect x='18' y='2' width='4' height='8' rx='1'/%3E%3Crect x='30' y='2' width='4' height='8' rx='1'/%3E%3Crect x='42' y='2' width='4' height='8' rx='1'/%3E%3Crect x='18' y='54' width='4' height='8' rx='1'/%3E%3Crect x='30' y='54' width='4' height='8' rx='1'/%3E%3Crect x='42' y='54' width='4' height='8' rx='1'/%3E%3Crect x='2' y='18' width='8' height='4' rx='1'/%3E%3Crect x='2' y='30' width='8' height='4' rx='1'/%3E%3Crect x='2' y='42' width='8' height='4' rx='1'/%3E%3Crect x='54' y='18' width='8' height='4' rx='1'/%3E%3Crect x='54' y='30' width='8' height='4' rx='1'/%3E%3Crect x='54' y='42' width='8' height='4' rx='1'/%3E%3C/g%3E%3Crect x='8' y='8' width='48' height='48' rx='12' fill='%23a8192b'/%3E%3Crect x='16' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='25' y='24' width='7' height='16' rx='2' fill='%23f7dddc' fill-opacity='.35'/%3E%3Crect x='34' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='43' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3C/svg%3E">
+    <span class="etiqueta">Computadores I · Tema 6 · 6.3 Registros</span>
+  </div>
+  <h1>Registro PISO</h1>
+  <p>En cuanto a los <strong>registros PISO</strong>, deben tener una entrada para seleccionar si se desea realizar una <strong>carga paralela</strong> o una <strong>salida serie</strong>: <code>S/<span class="neg">P</span></code> en el ejemplo de la lección, realizado con biestables RS activos por flanco de bajada.</p>
+  <p>Delante de cada biestable hay un pequeño selector (dos AND y una NOR) que decide qué valor se le ofrece. A <code>S</code> le llega ese valor y a <code>R</code> su negado, así que en el flanco el biestable se queda con él, igual que haría un biestable D.</p>
+  <div class="modos-sp">
+    <div class="modo-sp"><b>S/<span class="neg">P</span> = 0 · carga paralela</b>Cada biestable recibe su entrada: <code>R = <span class="neg">I</span><sub>p</sub></code>, <code>S = I<sub>p</sub></code>. En un solo flanco se cargan los cuatro bits.</div>
+    <div class="modo-sp"><b>S/<span class="neg">P</span> = 1 · salida serie</b>Cada biestable recibe la salida del anterior: <code>R = <span class="neg">Q</span><sub>ant</sub></code>, <code>S = Q<sub>ant</sub></code>. En cada flanco sale un bit por <code>O</code>.</div>
+  </div>
+</header>
+
+<section>
+  <h2>Pruébalo</h2>
+  <div class="prosa"><p>El circuito es el de la segunda diapositiva, que añade a la primera dos cosas: una <strong>entrada serie <code>I</code></strong> para el primer biestable, con la que funciona como <strong>SISO o PISO</strong> según <code>S/<span class="neg">P</span></code>, y una señal <strong><code>CE</code></strong> que habilita o inhibe el reloj para que el registro pueda simplemente almacenar un valor. Con <code>I = 0</code> se comporta como el de la primera diapositiva.</p></div>
+  <div class="panel">
+    <div class="controles" id="controles"></div>
+    <div class="controles" id="acciones"></div>
+    <div id="aviso"></div>
+    <div class="circuito" id="circuito"></div>
+    <div class="lectura" id="lectura"></div>
+    <div class="subt">Qué hay en cada biestable</div>
+    <div class="marco-tabla"><table class="tabla-piso" id="tabla"></table></div>
+    <p class="pie" style="margin:0">Como en la lección, la tabla sigue los bits por su nombre: I<sub>3</sub> … I<sub>0</sub> son los bits cargados en paralelo, y los 0 y 1 sueltos los que han entrado por la entrada serie <code>I</code>. En O aparece la secuencia de bits que han salido, el más reciente a la izquierda.</p>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Compruébalo</h2>
+  <div class="reto" id="reto"></div>
+  <p class="pie">Las respuestas se corrigen en la página; nada se envía a ningún sitio.</p>
+</section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var v = function(x){ return 'v'+x; };
+  function nota(tipo, titulo, cuerpo){
+    var ico = tipo==='cuidado' ? '<path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/>' : tipo==='correcto' ? '<path d="M3 10l4 4 10-9"/>' : tipo==='incorrecto' ? '<path d="M5 5l10 10M15 5 5 15"/>' : '<path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/>';
+    return '<div class="nota nota-'+tipo+'" role="status"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ico+'</svg><div><b>'+titulo+'</b><div class="cuerpo">'+cuerpo+'</div></div></div>';
+  }
+  var SUB = ['₀','₁','₂','₃'];
+  // estado: Q[i] del biestable i (0 = el de la izquierda); E[i] su etiqueta simbólica para la tabla
+  var st = { SP:0, I:0, CE:1, P:[1,0,1,1], Q:[0,0,0,0], E:['0','0','0','0'], filas:[], salidas:[] };
+  // P[i] es la entrada paralela del biestable i: I3 para el primero … I0 para el último
+  function reinicia(){ st.Q = [0,0,0,0]; st.E = ['0','0','0','0']; st.salidas = []; st.filas = [{ acc:'inicio', E:st.E.slice(), Q:st.Q.slice(), o:'0' }]; }
+
+  function valores(){
+    // lo que ofrece el selector de cada etapa y las señales R y S resultantes
+    return [0,1,2,3].map(function(i){
+      var prev = i===0 ? st.I : st.Q[i-1];
+      var a1 = prev & st.SP, a2 = st.P[i] & (1-st.SP), sel = a1 | a2;
+      return { prev:prev, a1:a1, a2:a2, R:1-sel, S:sel };
+    });
+  }
+  function and(x, y){ return '<path class="puerta" d="M'+x+' '+y+'H'+(x+40)+'V'+(y+18)+'A20 20 0 0 1 '+x+' '+(y+18)+'Z"/>'; }
+  function nor(x, y){ return '<path class="puerta" d="M'+x+' '+y+'Q'+(x+20)+' '+(y+10)+' '+(x+40)+' '+y+'Q'+(x+40)+' '+(y+26)+' '+(x+20)+' '+(y+40)+'Q'+x+' '+(y+26)+' '+x+' '+y+'Z"/><circle class="burbuja" cx="'+(x+20)+'" cy="'+(y+45)+'" r="5"/>'; }
+  function inv(x, y){ return '<path class="puerta" d="M'+(x-8)+' '+y+'H'+(x+8)+'L'+x+' '+(y+16)+'Z"/><circle class="burbuja" cx="'+x+'" cy="'+(y+21)+'" r="5"/>'; }
+
+  function circuito(){
+    var V = valores(), SP = st.SP, nSP = 1-SP, Cef = st.CE;
+    var X = function(i){ return 110 + i*165; };
+    var s = '<svg viewBox="0 0 840 470" style="min-width:720px" role="img" aria-label="Registro PISO con cuatro biestables RS por flanco de bajada, selector S/P negada, entrada serie I, entradas paralelo I3 a I0, CLR negada y reloj C habilitado por CE.">';
+    // buses
+    s += '<path class="cable '+v(SP)+'" d="M60 50H'+(X(3)+70)+'"/><text class="etq" x="6" y="56">S/P</text><line class="raya" x1="21" y1="38" x2="32" y2="38"/>';
+    s += '<path class="cable v1" d="M60 262H'+(X(3)+110)+'"/><text class="etq" x="6" y="268">CLR</text><line class="raya" x1="7" y1="250" x2="44" y2="250"/>';
+    s += '<path class="cable '+v(Cef)+'" d="M100 440H'+(X(3)+62)+'"/>';
+    // AND de habilitación del reloj (C · CE)
+    s += '<path class="cable v0" d="M20 428H50"/><path class="cable '+v(st.CE)+'" d="M20 452H50"/>'
+      + '<path class="puerta" d="M50 420H70A20 20 0 0 1 70 460H50Z"/><path class="cable '+v(Cef)+'" d="M90 440H100"/>'
+      + '<text class="etq" x="0" y="433">C</text><text class="etq" x="0" y="465" style="font-size:14px">CE</text>';
+    // entrada serie
+    s += '<path class="cable '+v(st.I)+'" d="M20 84H'+(X(0)+10)+'V100"/><text class="etq" x="6" y="90">I</text><text class="valor '+v(st.I)+'" x="30" y="78">'+st.I+'</text>';
+    for (var i=0;i<4;i++){
+      var x = X(i), d = V[i], q = st.Q[i];
+      // entrada paralela
+      s += '<path class="cable '+v(st.P[i])+'" d="M'+(x+90)+' 18V100"/><text class="etq" x="'+(x+78)+'" y="14">I'+SUB[3-i]+'</text><text class="valor '+v(st.P[i])+'" x="'+(x+96)+'" y="34">'+st.P[i]+'</text>';
+      // S/P a la AND de desplazamiento y, negada, a la de carga
+      s += '<circle class="nudo '+v(SP)+'" cx="'+(x+30)+'" cy="50" r="3.5"/><path class="cable '+v(SP)+'" d="M'+(x+30)+' 50V100"/>';
+      s += '<circle class="nudo '+v(SP)+'" cx="'+(x+70)+'" cy="50" r="3.5"/><path class="cable '+v(SP)+'" d="M'+(x+70)+' 50V58"/>' + inv(x+70, 58) + '<path class="cable '+v(nSP)+'" d="M'+(x+70)+' 84V100"/>';
+      s += and(x, 100) + and(x+60, 100);
+      s += '<path class="cable '+v(d.a1)+'" d="M'+(x+20)+' 138V156H'+(x+40)+'V170"/><path class="cable '+v(d.a2)+'" d="M'+(x+80)+' 138V156H'+(x+60)+'V170"/>';
+      s += nor(x+30, 168);
+      // R y S
+      s += '<path class="cable '+v(d.R)+'" d="M'+(x+50)+' 218V300H'+(x+80)+'"/><circle class="nudo '+v(d.R)+'" cx="'+(x+50)+'" cy="300" r="3.5"/>'
+        + '<text class="valor '+v(d.R)+'" x="'+(x+56)+'" y="244">R='+d.R+'</text>'
+        + inv(x+50, 318) + '<path class="cable '+v(d.S)+'" d="M'+(x+50)+' 344V390H'+(x+80)+'"/><text class="valor '+v(d.S)+'" x="'+(x+14)+'" y="378">S='+d.S+'</text>';
+      // biestable RS
+      s += '<rect class="caja-simb" x="'+(x+80)+'" y="280" width="80" height="125"/><circle class="nudo v1" cx="'+(x+120)+'" cy="262" r="3.5"/><path class="cable v1" d="M'+(x+120)+' 262V269"/><circle class="burbuja" cx="'+(x+120)+'" cy="274" r="5"/>'
+        + '<text class="pin" x="'+(x+86)+'" y="305">R</text><text class="pin" x="'+(x+106)+'" y="296">CLR</text><text class="pin" x="'+(x+146)+'" y="305">Q</text><text class="pin" x="'+(x+86)+'" y="394">S</text><text class="pin" x="'+(x+100)+'" y="350">C</text>'
+        + '<path class="raya" d="M'+(x+80)+' 337L'+(x+90)+' 345L'+(x+80)+' 353"/><circle class="burbuja" cx="'+(x+75)+'" cy="345" r="5"/>'
+        + '<circle class="nudo '+v(Cef)+'" cx="'+(x+62)+'" cy="440" r="3.5"/><path class="cable '+v(Cef)+'" d="M'+(x+62)+' 440V345H'+(x+70)+'"/>'
+        + '<text class="celda-bit '+v(q)+'" x="'+(x+130)+'" y="378" text-anchor="middle">'+q+'</text>';
+      // salida Q hacia la etapa siguiente o hacia O
+      if (i<3) s += '<path class="cable '+v(q)+'" d="M'+(x+160)+' 300H'+(x+170)+'V84H'+(X(i+1)+10)+'V100"/>';
+      else s += '<path class="cable '+v(q)+'" d="M'+(x+160)+' 300H830"/><text class="etq" x="'+(x+175)+'" y="292">O</text>';
+    }
+    $('circuito').innerHTML = s + '</svg>';
+  }
+  function tabla(){
+    var t = '<thead><tr><th></th><th></th>'+[3,2,1,0].map(function(n){ return '<th>I'+SUB[n]+'</th>'; }).join('')+'<th></th><th class="sal">O</th></tr></thead><tbody>';
+    st.filas.forEach(function(f, r){
+      t += '<tr class="'+(f.acc==='carga'?'carga':'')+(r===st.filas.length-1?' actual':'')+'"><td class="accion">'+(f.acc==='inicio'?'vacío':f.acc==='carga'?'S/P = 0':'S/P = 1')+'</td><td class="flecha">'+(f.acc==='inicio'?'':'↓')+'</td>'
+        + f.E.map(function(e){ return '<td class="q'+(e[0]==='I'?' dato':'')+'">'+e+'</td>'; }).join('')
+        + '<td>→</td><td class="o">'+f.o+'</td></tr>';
+    });
+    $('tabla').innerHTML = t + '</tbody>';
+  }
+  function pinta(msg){
+    $('controles').innerHTML =
+      '<span class="grupo"><span class="rotulo">S/P</span><button class="bitbtn'+(st.SP?' uno':'')+'" data-k="SP">'+st.SP+'</button><span class="modo '+(st.SP?'desplaza':'carga')+'">'+(st.SP?'salida serie':'carga paralela')+'</span></span>'
+      + '<span class="grupo"><span class="rotulo">I₃ I₂ I₁ I₀</span>'+st.P.map(function(b,i){ return '<button class="bitbtn'+(b?' uno':'')+'" data-k="P'+i+'" aria-label="Entrada I'+(3-i)+', vale '+b+'">'+b+'</button>'; }).join('')+'</span>'
+      + '<span class="grupo"><span class="rotulo">Serie I</span><button class="bitbtn'+(st.I?' uno':'')+'" data-k="I">'+st.I+'</button></span>'
+      + '<span class="grupo"><span class="rotulo">CE</span><button class="bitbtn'+(st.CE?' uno':'')+'" data-k="CE">'+st.CE+'</button></span>';
+    $('acciones').innerHTML = '<button class="boton boton-reloj" id="b-flanco">Flanco de bajada de C</button><button class="boton" id="b-clr">Pulso de <span class="neg">CLR</span></button>';
+    circuito(); tabla();
+    $('lectura').innerHTML = '<div class="dato"><span class="subt">Biestables (izquierda → derecha)</span><b>'+st.Q.join(' ')+'</b></div>'
+      + '<div class="dato"><span class="subt">Salida O</span><b>'+st.Q[3]+'</b></div>'
+      + '<div class="dato"><span class="subt">Bits que han salido por O</span><b>'+(st.salidas.length ? st.salidas.slice().reverse().join(' ') : '—')+'</b></div>';
+    $('aviso').innerHTML = msg || '';
+    $('controles').querySelectorAll('.bitbtn').forEach(function(b){ b.addEventListener('click', function(){
+      var k = b.dataset.k;
+      if (k[0]==='P') st.P[+k.slice(1)] = 1 - st.P[+k.slice(1)]; else st[k] = 1 - st[k];
+      pinta(k==='CE' && !st.CE ? nota('idea', 'Reloj inhibido', 'Con CE = 0 la AND bloquea el reloj: los flancos de C no llegan a los biestables y el registro simplemente almacena su valor.') : $('aviso').innerHTML);
+      $('controles').querySelector('[data-k="'+k+'"]').focus();
+    }); });
+    $('b-flanco').addEventListener('click', function(){ flanco(); $('b-flanco').focus(); });
+    $('b-clr').addEventListener('click', function(){ reinicia(); pinta(nota('idea', 'Registro a cero', 'El pulso de <span class="neg">CLR</span> ha puesto los cuatro biestables a 0 sin esperar al reloj.')); });
+  }
+  function flanco(){
+    if (!st.CE){ pinta(nota('cuidado', 'CE = 0: no pasa nada', 'El flanco de C no llega a los biestables porque la AND de CE lo bloquea. Pon CE = 1 para que el registro cambie.')); return; }
+    var V = valores();
+    st.Q = V.map(function(d){ return d.S; });
+    if (st.SP){ st.E = [String(st.I), st.E[0], st.E[1], st.E[2]]; }
+    else { st.E = ['I₃','I₂','I₁','I₀']; }
+    st.salidas.push(st.Q[3]);
+    var ultima = st.filas[st.filas.length-1].o;
+    var o = st.E[3] + (ultima==='0' && st.filas.length===1 ? '' : ultima);
+    st.filas.push({ acc: st.SP ? 'desplaza' : 'carga', E:st.E.slice(), Q:st.Q.slice(), o:o });
+    pinta(st.SP ? nota('idea', 'Desplazamiento', 'Cada biestable ha tomado el valor del anterior y el primero el de la entrada serie I ('+st.I+'). Ahora sale por O el bit '+st.Q[3]+'.')
+      : nota('idea', 'Carga paralela', 'En un solo flanco se han cargado I₃ I₂ I₁ I₀ = '+st.P.join(' ')+'. Por O ya aparece I₀ = '+st.Q[3]+'. Pon S/P = 1 para sacar los demás bits uno a uno.'));
+  }
+
+  reinicia(); flanco(); st.SP = 1; flanco();
+  pinta(nota('idea', 'Ejemplo en marcha', 'Se ha hecho una carga paralela (S/P = 0) y un desplazamiento (S/P = 1). Sigue dando flancos para sacar el resto de bits por O.'));
+
+  var PREG = [
+    { q:'¿Para qué sirve la entrada <code>S/<span class="neg">P</span></code> de un registro PISO?', ops:['Para poner el registro a cero','Para elegir entre carga paralela y salida serie','Para habilitar el reloj'], ok:1, exp:'Con S/P = 0 se cargan las entradas en paralelo; con S/P = 1 los bits se desplazan y salen en serie. Poner a cero es cosa de CLR y habilitar el reloj, de CE.' },
+    { q:'Con <code>S/<span class="neg">P</span> = 0</code>, ¿qué recibe el biestable RS de la etapa <i>p</i>?', ops:['R = Iₚ, S = Īₚ','R = Īₚ, S = Iₚ','R = 1, S = 0'], ok:1, exp:'S recibe el bit que se quiere guardar y R su negado; así, en el flanco, el biestable se queda con Iₚ.' },
+    { q:'Tras una carga paralela de 4 bits, I₀ ya está en <code>O</code>. ¿Cuántos flancos más hacen falta para que hayan salido los cuatro?', ops:['1','3','4'], ok:1, exp:'I₀ sale con la carga; I₁, I₂ e I₃ necesitan un desplazamiento cada uno: 3 flancos más.' },
+    { q:'¿Qué ocurre en un flanco de <code>C</code> si <code>CE = 0</code>?', ops:['El registro se pone a cero','Nada: el reloj está inhibido y el registro conserva su valor','Se desplaza igualmente'], ok:1, exp:'La AND de C y CE da 0: el flanco no llega a los biestables y el registro almacena su valor.' },
+    { q:'Con la entrada serie <code>I</code> y <code>S/<span class="neg">P</span> = 1</code> siempre, ¿cómo funciona el registro de la segunda diapositiva?', ops:['Como un SISO','Como un PIPO','Como un SIPO sin salidas'], ok:0, exp:'Los bits entran por I y salen por O de uno en uno: es un registro SISO. Con S/P = 0 se convierte en PISO.' }
+  ];
+  var Rt = $('reto');
+  PREG.forEach(function(p, i){
+    var div = document.createElement('div'); div.className = 'pregunta';
+    div.innerHTML = '<div><span class="etiqueta etiqueta-neutra">Pregunta '+(i+1)+'</span></div><div>'+p.q+'</div><div class="opciones" role="group" aria-label="Opciones de la pregunta '+(i+1)+'">'+p.ops.map(function(o,j){ return '<button class="boton" data-j="'+j+'" aria-pressed="false">'+o+'</button>'; }).join('')+'</div><div class="feedback"></div>';
+    Rt.appendChild(div);
+    div.querySelectorAll('.opciones .boton').forEach(function(b2){
+      b2.addEventListener('click', function(){
+        div.querySelectorAll('.opciones .boton').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+        b2.setAttribute('aria-pressed','true');
+        var ok = +b2.dataset.j === p.ok;
+        div.querySelector('.feedback').innerHTML = nota(ok?'correcto':'incorrecto', ok?'Correcto':'Incorrecto', p.exp);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

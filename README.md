@@ -19,3 +19,4 @@ Web: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
 | [registros.html](registros.html) | 6.3 · Registros: SISO, SIPO, PISO y PIPO en un registro de 4 bits |
 | [registro-siso.html](registro-siso.html) | 6.3 · Registro SISO: biestables D encadenados con CLR, el ejemplo de la lección paso a paso |
 | [registro-sipo.html](registro-sipo.html) | 6.3 · Registro SIPO: salidas en cada etapa y AND de habilitación |
+| [registro-piso.html](registro-piso.html) | 6.3 · Registro PISO: selector S/P con biestables RS, SISO o PISO y habilitación de reloj CE |
