@@ -1,6 +1,6 @@
 # Tema 6 · Circuitos secuenciales
 
-Explicaciones interactivas del Tema 6 de la asignatura Computadores, Universidad de Salamanca. Cada página tiene un simulador, los diagramas de la teoría y preguntas de autoevaluación.
+Explicaciones interactivas del Tema 6 de la asignatura Computadores I, Universidad de Salamanca. Cada página tiene un simulador, los diagramas de la teoría y preguntas de autoevaluación.
 
 Web: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
 
