@@ -21,3 +21,4 @@ Web: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
 | [registro-sipo.html](registro-sipo.html) | 6.3 · Registro SIPO: salidas en cada etapa y AND de habilitación |
 | [registro-piso.html](registro-piso.html) | 6.3 · Registro PISO: selector S/P con biestables RS, SISO o PISO y habilitación de reloj CE |
 | [registro-universal.html](registro-universal.html) | 6.3 · Registro universal (serie y paralelo) y registro bidireccional con R/L |
+| [contadores.html](contadores.html) | 6.4 · Contadores: la secuencia binaria de 4 bits y el disparo en cascada |
