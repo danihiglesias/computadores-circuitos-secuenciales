@@ -14,4 +14,4 @@ Web: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
 | [biestable-rs-sincrono.html](biestable-rs-sincrono.html) | 6.2.1 · Biestable RS síncrono: activo en nivel alto y en flanco de subida |
 | [biestable-jk.html](biestable-jk.html) | 6.2.2 · Biestable JK: complemento, síntesis con RS y dos AND, cronograma |
 | [preset-clear.html](preset-clear.html) | 6.2.2 · Preset y clear: entradas asíncronas, JK con NAND y ejercicio de cronograma |
-| [biestable-t.html](biestable-t.html) | 6.2.3 · Biestable T: construcción con un JK y cronograma para dibujar |
+| [biestable-t.html](biestable-t.html) | 6.2.3 · Biestable T: construcción con un JK, divisor de frecuencia en cadena y cronograma para dibujar |

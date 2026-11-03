@@ -202,6 +202,15 @@ sub { font-size:.7em; }
 .etq-fila { font-family:var(--font-sans); font-size:15px; font-weight:700; fill:var(--tinta); }
 .etq-sub { font-family:var(--font-sans); font-size:11px; fill:var(--tinta-suave); }
 .flecha-sube { stroke:var(--vitor); stroke-width:1.2; stroke-dasharray:3 3; }
+.onda.qi { stroke:var(--centenario); stroke-width:2.4; }
+.punta-sube { fill:var(--vitor); }
+.futuro { fill:var(--papel-elevado); opacity:.8; }
+.cursor { stroke:var(--dorado-texto); stroke-width:2; }
+.cadena svg { min-width:600px; }
+.binario { display:inline-flex; gap:4px; }
+.binario i { font:600 20px/1 var(--font-mono); font-style:normal; width:30px; height:36px; display:inline-grid; place-items:center; border-radius:var(--radius-sm); background:var(--papel-elevado); border:1px solid var(--piedra); }
+.binario i.uno { background:var(--vitor); border-color:var(--vitor); color:var(--sobre-vitor); }
+.frecuencias td, .frecuencias th { font-family:var(--font-mono); text-align:center; }
 </style>
 </head>
 <body>
@@ -259,6 +268,44 @@ sub { font-size:.7em; }
   <div class="prosa"><p>Cada flanco de subida de <code>T</code> lleva al otro estado; cualquier otra cosa deja el biestable donde está. La última transición del simulador aparece resaltada.</p></div>
   <div class="marco-diag circuito">
     <svg id="diag" viewBox="0 0 640 260" role="img" aria-label="Diagrama de estados del biestable T: de Q=0 a Q=1 y de Q=1 a Q=0 con T en flanco de subida; T=otro mantiene el estado."></svg>
+  </div>
+</section>
+
+<section>
+  <h2>En cadena: divisor de frecuencia</h2>
+  <div class="prosa">
+    <p>Metiendo <strong>una señal de reloj por la entrada T</strong> de uno de estos biestables obtenemos a la salida una <strong>señal de periodo doble</strong> (frecuencia mitad). Y podemos repetir el proceso tantas veces como sea necesario: la salida de cada biestable es la entrada <code>T</code> del siguiente.</p>
+    <p>Pulsa <b>Flanco de reloj</b> para avanzar el reloj <code>C</code> un periodo y mira cómo cada flanco de subida se propaga por la cadena.</p>
+  </div>
+  <div class="panel">
+    <div class="circuito cadena" id="cadena"></div>
+    <div class="controles">
+      <button class="boton-reloj boton" id="b-pulso" style="background:var(--centenario);border-color:var(--centenario);color:var(--sobre-centenario)">Flanco de reloj</button>
+      <button class="boton boton-discreto" id="b-cadena">Volver al principio</button>
+      <span class="pie" id="pulsos" style="margin:0"></span>
+    </div>
+    <div class="circuito crono" id="crono-cadena"></div>
+    <div class="grid2">
+      <div class="col">
+        <div class="tabla-wrap">
+          <table class="frecuencias">
+            <thead><tr><th>Señal</th><th>Periodo</th><th>Frecuencia</th></tr></thead>
+            <tbody>
+              <tr><td>C</td><td>T<sub>C</sub></td><td>f</td></tr>
+              <tr><td>Q<sub>1</sub></td><td>2 T<sub>C</sub></td><td>f / 2</td></tr>
+              <tr><td>Q<sub>2</sub></td><td>4 T<sub>C</sub></td><td>f / 4</td></tr>
+              <tr><td>Q<sub>3</sub></td><td>8 T<sub>C</sub></td><td>f / 8</td></tr>
+              <tr><td>Q<sub>4</sub></td><td>16 T<sub>C</sub></td><td>f / 16</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col">
+        <div class="subt">Q<sub>4</sub> Q<sub>3</sub> Q<sub>2</sub> Q<sub>1</sub> leído como número binario</div>
+        <div class="fila" id="binario"></div>
+        <p class="pie" style="margin:0">Cada etapa divide la frecuencia entre 2: con <i>n</i> biestables, la última salida oscila a f / 2<sup><i>n</i></sup>. Si lees las salidas como un número binario, verás que cambia en cada flanco del reloj: es la idea de los contadores.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -364,6 +411,54 @@ sub { font-size:.7em; }
   reset();
   cambiaT(); cambiaT(); cambiaT();
 
+  // cadena de cuatro biestables T por flanco de subida: C → T1, Q1 → T2, Q2 → T3, Q3 → T4
+  var NC = 16, XC = 70, WC = 40, FC = 46;
+  var SEN = (function(){
+    var C = [], Q = [[],[],[],[]], q = [0,0,0,0];
+    for (var k=0;k<NC;k++){
+      C.push(k%2);
+      var ent = C;
+      for (var i=0;i<4;i++){
+        if (k>0 && ent[k] && !ent[k-1]) q[i] = 1-q[i];
+        Q[i].push(q[i]); ent = Q[i];
+      }
+    }
+    return [C].concat(Q);
+  })();
+  var pulsos = 0;
+  function cadena(){
+    var k = pulsos ? 2*pulsos-1 : 0, val = SEN.map(function(r){ return r[k]; });
+    var out = '<svg viewBox="0 0 720 170" role="img" aria-label="Cuatro biestables T en cadena: el reloj C entra en el primero y la salida Q de cada uno es la entrada T del siguiente.">';
+    out += '<text class="nombre" x="14" y="104">C</text><path class="cable '+v(val[0])+'" d="M40 96H90"/><text class="valor '+v(val[0])+'" x="52" y="86">'+val[0]+'</text>';
+    for (var i=0;i<4;i++){
+      var x = 90 + i*160, qv = val[i+1];
+      out += '<rect class="caja-simb" x="'+x+'" y="40" width="80" height="100"/><path class="raya" style="fill:none" d="M'+x+' 86L'+(x+12)+' 96L'+x+' 106"/>'
+        + '<text class="pin" x="'+(x+18)+'" y="102">T</text><text class="pin" x="'+(x+56)+'" y="66">Q</text>';
+      var fin = i<3 ? 'H'+(x+120)+'V96H'+(x+160) : 'H'+(x+120);
+      out += '<path class="cable '+v(qv)+'" d="M'+(x+80)+' 60'+fin+'"/>'
+        + '<text class="valor '+v(qv)+'" x="'+(x+92)+'" y="50">Q'+'₁₂₃₄'[i]+' = '+qv+'</text>';
+    }
+    $('cadena').innerHTML = out + '</svg>';
+    $('binario').innerHTML = '<span class="binario">'+[4,3,2,1].map(function(n){ return '<i class="'+(val[n]?'uno':'')+'">'+val[n]+'</i>'; }).join('')+'</span><b style="font:600 20px var(--font-mono)">= '+(val[4]*8+val[3]*4+val[2]*2+val[1])+'</b>';
+    $('pulsos').textContent = pulsos ? pulsos+(pulsos===1?' flanco de reloj':' flancos de reloj') : 'Todos los biestables empiezan a 0';
+    $('b-pulso').disabled = pulsos >= NC/2;
+    // cronograma completo, con lo que aún no ha ocurrido tapado
+    var alto = 5*FC + 8, nom = ['C','Q₁','Q₂','Q₃','Q₄'];
+    var c = '<svg viewBox="0 0 '+(XC+NC*WC+10)+' '+alto+'" role="img" aria-label="Cronograma del reloj C y las salidas Q1 a Q4 de la cadena.">';
+    SEN.forEach(function(r, f){
+      var top = f*FC, Y = function(b){ return b ? top+10 : top+36; }, d = 'M'+XC+' '+Y(r[0]);
+      for (var j=0;j<NC;j++){ if (j>0 && r[j]!==r[j-1]) d += 'V'+Y(r[j]); d += 'H'+(XC+(j+1)*WC); }
+      c += '<text class="etq-fila" x="8" y="'+(top+28)+'">'+nom[f]+'</text><path class="onda '+(f?'qi':'clk')+'" d="'+d+'"/>';
+      for (var j=1;j<NC;j++) if (r[j] && !r[j-1]) c += '<path class="punta-sube" d="M'+(XC+j*WC)+' '+(top+10)+'l-4 9h8z"/>';
+    });
+    var xc = XC + (pulsos ? 2*pulsos-1 : 0)*WC + (pulsos ? 0 : WC/2);
+    c += '<rect class="futuro" x="'+(xc+ (pulsos?WC/2:0))+'" y="0" width="'+(XC+NC*WC-xc-(pulsos?WC/2:0))+'" height="'+alto+'"/><line class="cursor" x1="'+(xc+(pulsos?WC/2:0))+'" y1="0" x2="'+(xc+(pulsos?WC/2:0))+'" y2="'+alto+'"/>';
+    $('crono-cadena').innerHTML = c + '</svg>';
+  }
+  $('b-pulso').addEventListener('click', function(){ if (pulsos < NC/2) pulsos++; cadena(); });
+  $('b-cadena').addEventListener('click', function(){ pulsos = 0; cadena(); });
+  pulsos = 3; cadena();
+
   // ejercicio: tramos de medio periodo, T empieza baja como en la lección
   var N = 13, X0 = 130, W = 54, FILA = 60;
   var TS = []; for (var k=0;k<N;k++) TS.push(k%2);
@@ -406,7 +501,8 @@ sub { font-size:.7em; }
     { q:'Un biestable T activo en flanco de subida tiene <code>Q = 1</code>. <code>T</code> pasa de 1 a 0. ¿Qué vale Q?', ops:['0','1'], ok:1, exp:'Un flanco de bajada es «otro»: el biestable no hace nada y Q sigue a 1.' },
     { q:'¿Cómo se construye un biestable T con un JK?', ops:['J = K = 1 y T en el reloj','J = T y K = 0','J = K = 0 y T en el reloj'], ok:0, exp:'Con J = K = 1 el JK complementa en cada flanco de su reloj, que es justo lo que hace un biestable T.' },
     { q:'Partiendo de <code>Q = 0</code>, <code>T</code> recibe 5 flancos de subida. ¿Qué vale Q al final?', ops:['0','1'], ok:1, exp:'Cada flanco de subida invierte Q: tras un número impar de flancos, Q es el contrario del inicial, 1.' },
-    { q:'Si a <code>T</code> llega un reloj de 10 MHz, ¿qué frecuencia tiene Q?', ops:['10 MHz','5 MHz','20 MHz'], ok:1, exp:'Q cambia una vez por periodo de T, así que tarda dos periodos de T en completar el suyo: 10 MHz / 2 = 5 MHz.' }
+    { q:'Si a <code>T</code> llega un reloj de 10 MHz, ¿qué frecuencia tiene Q?', ops:['10 MHz','5 MHz','20 MHz'], ok:1, exp:'Q cambia una vez por periodo de T, así que tarda dos periodos de T en completar el suyo: 10 MHz / 2 = 5 MHz.' },
+    { q:'Encadenamos cuatro biestables T como en la lección y metemos por <code>C</code> un reloj de 16 MHz. ¿Qué frecuencia tiene Q<sub>4</sub>?', ops:['4 MHz','1 MHz','2 MHz'], ok:1, exp:'Cada etapa divide entre 2: 16 → 8 → 4 → 2 → 1 MHz. En general, f / 2⁴ = f / 16.' }
   ];
   var Rt = $('reto');
   PREG.forEach(function(p, i){
