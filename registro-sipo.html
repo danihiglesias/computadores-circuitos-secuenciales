@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Registro SIPO</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Lato:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+
+/* Layout: columna de lectura (68 ch) con el simulador a ancho completo; tema único claro del sistema Computadores */
+:root {
+  --papel:#f8f4ec; --papel-elevado:#ffffff; --papel-hundido:#efe8db; --piedra:#e3d9c8; --piedra-fuerte:#857869;
+  --tinta:#2a2420; --tinta-suave:#6b5f55;
+  --vitor:#a8192b; --vitor-suave:#f7dddc; --sobre-vitor:#ffffff;
+  --dorado:#d9a441; --dorado-texto:#8a5a0a; --dorado-suave:#fbeed2;
+  --centenario:#385e9d; --centenario-suave:#dde6f4; --sobre-centenario:#ffffff;
+  --correcto:#1f6f43; --correcto-suave:#dcefe2;
+  --incorrecto:var(--vitor); --incorrecto-suave:var(--vitor-suave);
+  --foco:var(--centenario);
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px; --space-8:64px;
+  --radius-sm:6px; --radius-md:12px; --radius-lg:20px; --radius-pill:999px;
+  --sombra-tarjeta:0 1px 2px rgba(42,36,32,.06), 0 4px 12px rgba(42,36,32,.06);
+  --font-display:"Bricolage Grotesque","Lato",system-ui,sans-serif;
+  --font-sans:"Lato",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+* { box-sizing:border-box; }
+body { background:var(--papel); color:var(--tinta); font-family:var(--font-sans); font-size:17px; line-height:27px; margin:0;
+  padding-block:var(--space-6) var(--space-8); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+.wrap { max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:var(--space-7); }
+.prosa { max-width:68ch; }
+.prosa p { margin:0 0 var(--space-4); }
+h1,h2,h3 { font-family:var(--font-display); text-wrap:balance; margin:0; }
+h1 { font-size:40px; line-height:44px; font-weight:700; letter-spacing:-.02em; margin:var(--space-2) 0 var(--space-4); }
+h2 { font-size:28px; line-height:34px; font-weight:600; letter-spacing:-.01em; margin-bottom:var(--space-4); display:inline-block; box-shadow:inset 0 -4px 0 var(--dorado); }
+h3 { font-size:20px; line-height:26px; font-weight:600; }
+.etiqueta { display:inline-flex; align-items:center; gap:var(--space-1); font-size:12px; line-height:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:2px var(--space-2); border-radius:var(--radius-pill); background:var(--vitor-suave); color:var(--vitor); }
+.etiqueta-neutra { background:var(--papel-hundido); color:var(--tinta-suave); }
+.cabecera { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+.cabecera img { width:40px; height:40px; }
+code { font-family:var(--font-mono); font-size:15px; background:var(--papel-hundido); padding:1px 6px; border-radius:var(--radius-sm); }
+
+.nota { display:grid; grid-template-columns:20px 1fr; gap:var(--space-3); padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-elevado); border:1px solid var(--piedra); font-size:15px; line-height:22px; max-width:68ch; }
+.nota svg { width:20px; height:20px; margin-top:1px; }
+.nota b { display:block; margin-bottom:2px; }
+.nota-idea { background:var(--centenario-suave); border-color:var(--centenario-suave); color:var(--centenario); }
+.nota-cuidado { background:var(--dorado-suave); border-color:var(--dorado-suave); color:var(--dorado-texto); }
+.nota-correcto { background:var(--correcto-suave); border-color:var(--correcto-suave); color:var(--correcto); }
+.nota-incorrecto { background:var(--incorrecto-suave); border-color:var(--incorrecto-suave); color:var(--incorrecto); }
+.nota .cuerpo { color:var(--tinta); }
+
+.panel { background:var(--papel-elevado); border-radius:var(--radius-lg); box-shadow:var(--sombra-tarjeta); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-5); }
+.grid2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-5); align-items:start; }
+@media (max-width:720px) { .grid2 { grid-template-columns:1fr; } }
+.col { display:flex; flex-direction:column; gap:var(--space-4); min-width:0; }
+.boton { font:700 15px/20px var(--font-sans); padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; display:inline-flex; align-items:center; gap:var(--space-2); }
+.boton-discreto { background:transparent; border-color:transparent; color:var(--vitor); }
+.boton:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.boton:hover { border-color:var(--vitor); }
+.fila { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; }
+.subt { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); }
+
+/* conjuntos I, O, S */
+.conjuntos { display:grid; gap:var(--space-3); }
+.conjunto { display:grid; grid-template-columns:56px 1fr; gap:var(--space-3); align-items:center; padding:var(--space-3) var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.conjunto .letra { font:600 30px/1 var(--font-display); font-style:italic; text-align:center; }
+.conjunto .letra small { display:block; font:700 11px/14px var(--font-sans); font-style:normal; letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); margin-top:4px; }
+.elementos { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; font-family:var(--font-mono); font-size:15px; }
+.elementos .llave { font-size:24px; color:var(--tinta-suave); }
+.el { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:var(--radius-pill); background:var(--papel-hundido); }
+.el svg { width:20px; height:20px; flex:none; }
+
+/* gestos */
+.gesto { font:700 13px/1 var(--font-mono); padding:3px 7px; border-radius:var(--radius-sm); display:inline-block; min-width:28px; text-align:center; }
+.g-R { background:var(--vitor-suave); color:var(--vitor); }
+.g-Ll { background:var(--centenario-suave); color:var(--centenario); }
+.g-0 { background:var(--correcto-suave); color:var(--correcto); }
+
+/* simulador */
+.nino { display:grid; grid-template-columns:auto 1fr; gap:var(--space-4); align-items:center; padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.cara { width:88px; height:88px; }
+.cara circle.c { fill:var(--dorado-suave); stroke:var(--tinta); stroke-width:1.4; }
+.cara .r { fill:none; stroke:var(--tinta); stroke-width:1.6; stroke-linecap:round; }
+.cara .o { fill:var(--tinta); }
+.cara .lagrima { fill:var(--centenario); }
+.nino .estado-txt { font:600 24px/30px var(--font-display); }
+.nino .estado-txt em { font-style:normal; color:var(--tinta-suave); font-size:15px; font-family:var(--font-sans); font-weight:400; display:block; line-height:20px; }
+.salida-grande { margin-top:var(--space-2); display:flex; align-items:center; gap:var(--space-2); font-size:15px; }
+.salida-grande .gesto { font-size:17px; padding:6px 12px; }
+.entradas .boton svg { width:22px; height:22px; }
+
+.tabla-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+th, td { padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--piedra); text-align:left; white-space:nowrap; }
+thead th { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); background:var(--papel-hundido); }
+td.t { font-family:var(--font-mono); color:var(--tinta-suave); font-variant-numeric:tabular-nums; }
+tr.nuevo td { background:var(--dorado-suave); }
+tr.choque td.ent { box-shadow:inset 3px 0 0 var(--vitor); }
+.transicion td, .transicion th { text-align:center; }
+.transicion tbody th { text-align:left; font-family:var(--font-display); font-size:16px; font-weight:600; background:var(--papel-hundido); }
+.transicion td.activa { background:var(--dorado); }
+.transicion td .sig { display:block; font-size:14px; color:var(--tinta-suave); }
+.transicion td.activa .sig { color:var(--tinta); }
+.transicion tr.fila-actual th { box-shadow:inset 3px 0 0 var(--vitor); }
+
+/* diagrama de bloques */
+.diagrama { overflow-x:auto; }
+.diagrama svg { display:block; width:100%; min-width:520px; height:auto; }
+.d-caja { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.d-mem { fill:var(--dorado-suave); stroke:var(--dorado-texto); stroke-width:1.5; }
+.d-linea { fill:none; stroke:var(--tinta); stroke-width:1.5; }
+.d-realim { fill:none; stroke:var(--vitor); stroke-width:1.8; }
+.d-txt { fill:var(--tinta); font-family:var(--font-display); font-size:17px; font-weight:600; }
+.d-sub { fill:var(--tinta-suave); font-family:var(--font-sans); font-size:13px; }
+.d-var { fill:var(--tinta); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-var-v { fill:var(--vitor); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-flecha { fill:var(--tinta); } .d-flecha-v { fill:var(--vitor); }
+
+/* diagrama de estados */
+#diag-estados { min-width:560px; }
+.arista { fill:none; stroke:var(--tinta-suave); stroke-width:1.6; }
+.e-lentejas { stroke-dasharray:none; } .e-bici { stroke-dasharray:8 6; } .e-futbol { stroke-dasharray:2 5; stroke-linecap:round; }
+.leyenda path { fill:none; stroke:var(--tinta-suave); stroke-width:1.8; }
+.leyenda path.e-act { stroke:var(--vitor); stroke-width:3; }
+.arista.activa { stroke:var(--vitor); stroke-width:3; }
+.etq { font-family:var(--font-mono); font-size:13px; font-weight:500; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:4px; stroke-linejoin:round; }
+.etq.activa { font-weight:700; }
+.etq .o-R { fill:var(--vitor); } .etq .o-Ll { fill:var(--centenario); } .etq .o-0 { fill:var(--correcto); }
+.nodo { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.nodo.actual { fill:var(--dorado-suave); stroke:var(--vitor); stroke-width:3; }
+.nodo-txt { font-family:var(--font-display); font-size:15px; font-weight:600; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:5px; stroke-linejoin:round; }
+.punta { fill:var(--tinta-suave); } .punta-v { fill:var(--vitor); }
+.ley { display:inline-flex; align-items:center; gap:6px; font-size:14px; }
+.ley svg { width:40px; height:8px; }
+.formula { font-family:var(--font-mono); font-size:16px; background:var(--papel-hundido); border-radius:var(--radius-sm); padding:var(--space-3) var(--space-4); display:grid; gap:4px; }
+.formula .v { color:var(--vitor); font-weight:600; }
+
+.comparativa { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); max-width:68ch; }
+@media (max-width:600px) { .comparativa { grid-template-columns:1fr; } }
+.tarjeta { border:1px solid var(--piedra); border-radius:var(--radius-md); padding:var(--space-4); background:var(--papel-elevado); font-size:15px; line-height:22px; }
+.tarjeta h3 { margin-bottom:var(--space-2); }
+.tarjeta ul { margin:0; padding-left:18px; } .tarjeta li { margin-bottom:4px; }
+
+.reto { display:grid; gap:var(--space-4); }
+.pregunta { display:grid; gap:var(--space-3); padding:var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.opciones { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+.opciones .boton[aria-pressed="true"] { background:var(--centenario); border-color:var(--centenario); color:var(--sobre-centenario); }
+.pie { font-size:13px; line-height:18px; color:var(--tinta-suave); }
+.nav-leccion { max-width:960px; margin:0 auto var(--space-5); display:flex; justify-content:space-between; gap:var(--space-3); font-size:14px; flex-wrap:wrap; color:var(--tinta-suave); }
+.nav-leccion a { color:var(--centenario); }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+@keyframes aparece { from { background:var(--dorado); } }
+tr.nuevo td { animation:aparece 600ms ease-out; }
+
+/* 6.3 registro SIPO: el SISO con salidas en cada etapa y una AND de habilitación a la entrada */
+.circuito { overflow-x:auto; }
+.circuito svg { display:block; width:100%; height:auto; }
+.puerta { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.6; }
+.cable { fill:none; stroke-width:2; stroke-linejoin:round; }
+.cable.v0 { stroke:var(--tinta-suave); } .cable.v1 { stroke:var(--vitor); stroke-width:3; }
+.nudo.v0 { fill:var(--tinta-suave); } .nudo.v1 { fill:var(--vitor); }
+.caja-simb { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.8; }
+.burbuja { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.6; }
+.raya { stroke:var(--tinta); stroke-width:1.6; fill:none; }
+.pin { font-family:var(--font-sans); font-size:14px; fill:var(--tinta); }
+.etq { font-family:var(--font-sans); font-size:20px; font-weight:700; fill:var(--tinta); }
+.etq-o { font-family:var(--font-sans); font-size:19px; font-weight:700; fill:var(--vitor); }
+.valor { font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.valor.v0 { fill:var(--tinta-suave); } .valor.v1 { fill:var(--vitor); }
+.celda-bit { font:600 30px var(--font-mono); }
+.celda-bit.v0 { fill:var(--tinta-suave); } .celda-bit.v1 { fill:var(--vitor); }
+.controles { display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:center; }
+.controles label { font-weight:700; font-size:15px; }
+.controles input[type="text"] { font:600 18px/24px var(--font-mono); letter-spacing:.08em; padding:var(--space-2) var(--space-3); border:1px solid var(--piedra-fuerte); border-radius:var(--radius-md); background:var(--papel-elevado); color:var(--tinta); width:16ch; }
+.controles input:focus-visible, .boton:focus-visible, .interruptor:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.boton-reloj { background:var(--centenario); border-color:var(--centenario); color:var(--sobre-centenario); }
+.boton:disabled { opacity:.45; cursor:not-allowed; }
+.interruptor { font:700 16px/20px var(--font-sans); display:inline-flex; align-items:center; gap:var(--space-2); padding:var(--space-2) var(--space-3); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; }
+.interruptor .bit { font:600 16px/1 var(--font-mono); width:30px; height:30px; display:inline-grid; place-items:center; border-radius:var(--radius-sm); background:var(--papel-hundido); border:1px solid var(--piedra); }
+.interruptor[aria-pressed="true"] .bit { background:var(--vitor); border-color:var(--vitor); color:var(--sobre-vitor); }
+.interruptor small { font-weight:400; color:var(--tinta-suave); font-size:13px; }
+.marco-tabla { background:var(--centenario-suave); border-radius:var(--radius-lg); padding:var(--space-3) var(--space-4); overflow-x:auto; }
+.tabla-siso { font-family:var(--font-mono); font-size:17px; border-collapse:collapse; width:auto; margin:0 auto; }
+.tabla-siso th, .tabla-siso td { border:none; padding:4px 10px; text-align:center; white-space:nowrap; }
+.tabla-siso th { font:700 18px var(--font-mono); background:transparent; letter-spacing:0; text-transform:none; }
+.tabla-siso th.ent { color:var(--correcto); } .tabla-siso th.sal { color:var(--vitor); }
+.tabla-siso td.resto { text-align:right; }
+.tabla-siso td.resto b { color:var(--correcto); }
+.tabla-siso td.flecha { color:var(--vitor); }
+.tabla-siso td.q { background:var(--papel-elevado); color:var(--centenario); font-weight:600; }
+.tabla-siso td.q.nuevo { background:var(--dorado-suave); }
+.tabla-siso tr.palabra td.q { box-shadow:inset 0 2px 0 var(--tinta), inset 0 -2px 0 var(--tinta); }
+.tabla-siso tr.palabra td.q.primera { box-shadow:inset 2px 2px 0 var(--tinta), inset 0 -2px 0 var(--tinta); }
+.tabla-siso tr.palabra td.q.ultima { box-shadow:inset -2px 2px 0 var(--tinta), inset 0 -2px 0 var(--tinta); }
+.tabla-siso td.nota-e { font-family:var(--font-sans); font-size:13px; color:var(--dorado-texto); text-align:left; }
+.lectura { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:var(--space-3); }
+@media (max-width:560px) { .lectura { grid-template-columns:1fr; } }
+.dato { padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.dato .subt { display:block; }
+.dato b { font:600 22px/30px var(--font-mono); }
+.dato.lleno { background:var(--correcto-suave); }
+</style>
+</head>
+<body>
+
+<nav class="nav-leccion" aria-label="Navegación del tema"><a href="index.html">← Índice del tema 6</a><span>12 / 12</span><span><a href="registro-siso.html">← Registro SISO</a></span></nav>
+<div class="wrap">
+<header class="prosa">
+  <div class="cabecera">
+    <img alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%236b5f55'%3E%3Crect x='18' y='2' width='4' height='8' rx='1'/%3E%3Crect x='30' y='2' width='4' height='8' rx='1'/%3E%3Crect x='42' y='2' width='4' height='8' rx='1'/%3E%3Crect x='18' y='54' width='4' height='8' rx='1'/%3E%3Crect x='30' y='54' width='4' height='8' rx='1'/%3E%3Crect x='42' y='54' width='4' height='8' rx='1'/%3E%3Crect x='2' y='18' width='8' height='4' rx='1'/%3E%3Crect x='2' y='30' width='8' height='4' rx='1'/%3E%3Crect x='2' y='42' width='8' height='4' rx='1'/%3E%3Crect x='54' y='18' width='8' height='4' rx='1'/%3E%3Crect x='54' y='30' width='8' height='4' rx='1'/%3E%3Crect x='54' y='42' width='8' height='4' rx='1'/%3E%3C/g%3E%3Crect x='8' y='8' width='48' height='48' rx='12' fill='%23a8192b'/%3E%3Crect x='16' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='25' y='24' width='7' height='16' rx='2' fill='%23f7dddc' fill-opacity='.35'/%3E%3Crect x='34' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='43' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3C/svg%3E">
+    <span class="etiqueta">Computadores I · Tema 6 · 6.3 Registros</span>
+  </div>
+  <h1>Registro SIPO</h1>
+  <p>El esquema de un <strong>registro SIPO</strong> es muy parecido al del <a href="registro-siso.html">registro SISO</a>: solamente se necesita <strong>añadir salidas en cada una de las etapas intermedias</strong>. Los bits siguen entrando de uno en uno por <code>I</code>, pero se pueden leer los cuatro a la vez por <code>O<sub>3</sub></code> … <code>O<sub>0</sub></code>.</p>
+  <p>El esquema de la lección añade además una puerta AND a la entrada: con la señal de habilitación <code>E = 1</code> deja pasar <code>I</code>; con <code>E = 0</code> al primer biestable le llega siempre un 0.</p>
+</header>
+
+<section>
+  <h2>Pruébalo</h2>
+  <div class="prosa"><p>El mismo dato de la lección, <code>0111001010</code>, entra por la derecha en cada flanco de bajada. Fíjate en las salidas de arriba: tras cuatro flancos, el registro contiene una palabra completa de 4 bits que se lee de una vez.</p></div>
+  <div class="panel">
+    <div class="controles">
+      <label for="dato">Dato</label>
+      <input type="text" id="dato" value="0111001010" maxlength="14" inputmode="numeric" autocomplete="off" spellcheck="false">
+      <span id="e-sitio"></span>
+      <button class="boton boton-reloj" id="b-flanco">Flanco de bajada</button>
+      <button class="boton" id="b-clr">Pulso de <span style="text-decoration:overline">CLR</span></button>
+    </div>
+    <div id="aviso"></div>
+    <div class="circuito" id="circuito"></div>
+    <div class="lectura" id="lectura"></div>
+    <div class="grid2">
+      <div class="col">
+        <div class="subt">La tabla de la lección</div>
+        <div class="marco-tabla"><table class="tabla-siso" id="tabla"></table></div>
+      </div>
+      <div class="col">
+        <div class="nota nota-idea">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/></svg>
+          <div><b>La fila recuadrada</b><div class="cuerpo">Cada 4 flancos, las cuatro salidas forman una palabra nueva. En el ejemplo, tras el cuarto flanco se lee <code>1010</code>: son los cuatro últimos bits del dato, en el mismo orden en que están escritos. El primer bit que entró está en <code>O<sub>0</sub></code> y el último en <code>O<sub>3</sub></code>.</div></div>
+        </div>
+        <div class="nota nota-cuidado">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/></svg>
+          <div><b>Leer en el momento justo</b><div class="cuerpo">Entre una palabra y la siguiente, las salidas muestran mezclas de las dos. Quien lea el registro en paralelo tiene que hacerlo justo cuando hayan entrado los 4 bits, es decir, cada 4 flancos de reloj.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Compruébalo</h2>
+  <div class="reto" id="reto"></div>
+  <p class="pie">Las respuestas se corrigen en la página; nada se envía a ningún sitio.</p>
+</section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var v = function(x){ return 'v'+x; };
+  function nota(tipo, titulo, cuerpo){
+    var ico = tipo==='cuidado' ? '<path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/>' : tipo==='correcto' ? '<path d="M3 10l4 4 10-9"/>' : tipo==='incorrecto' ? '<path d="M5 5l10 10M15 5 5 15"/>' : '<path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/>';
+    return '<div class="nota nota-'+tipo+'" role="status"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ico+'</svg><div><b>'+titulo+'</b><div class="cuerpo">'+cuerpo+'</div></div></div>';
+  }
+
+  // b[k]: bit en I antes del flanco k+1 (el dato entra por la derecha); hist[r]: estado tras r flancos
+  var dato = '0111001010', b = [], hist = [], E = 1;
+  function prepara(){ b = dato.split('').reverse().map(Number); hist = [{ Q:[0,0,0,0] }]; }
+  var k = function(){ return hist.length-1; };
+
+  function circuito(){
+    var Q = hist[k()].Q, I = b[Math.min(k(), b.length-1)], D = E & I;
+    var X = function(i){ return 210 + i*140; };
+    var s = '<svg viewBox="0 0 820 330" style="min-width:680px" role="img" aria-label="Registro SIPO: puerta AND de E e I a la entrada, cuatro biestables D por flanco de bajada encadenados con salidas O3 a O0, reloj C y CLR negada comunes. E='+E+', I='+I+', O3 a O0='+Q.join('')+'.">';
+    s += '<path class="cable v1" d="M70 80H'+(X(3)+50)+'"/><text class="etq" x="14" y="87">CLR</text><line class="raya" x1="15" y1="65" x2="60" y2="65"/>';
+    for (var i=0;i<4;i++) s += '<circle class="nudo v1" cx="'+(X(i)+50)+'" cy="80" r="4"/><path class="cable v1" d="M'+(X(i)+50)+' 80V104"/><circle class="burbuja" cx="'+(X(i)+50)+'" cy="110" r="6"/>';
+    s += '<path class="cable v0" d="M70 300H'+(X(3)-30)+'"/><text class="etq" x="34" y="307">C</text>';
+    for (var i=0;i<4;i++) s += '<circle class="nudo v0" cx="'+(X(i)-30)+'" cy="300" r="4"/><path class="cable v0" d="M'+(X(i)-30)+' 300V230H'+(X(i)-12)+'"/><circle class="burbuja" cx="'+(X(i)-6)+'" cy="230" r="6"/>';
+    // AND de habilitación
+    s += '<path class="cable '+v(E)+'" d="M70 145H120"/><path class="cable '+v(I)+'" d="M70 175H120"/>'
+      + '<path class="puerta" d="M120 130H150A30 30 0 0 1 150 190H120Z"/><path class="cable '+v(D)+'" d="M180 160H'+X(0)+'"/>'
+      + '<text class="etq" x="40" y="152">E</text><text class="etq" x="44" y="182">I</text>'
+      + '<text class="valor '+v(E)+'" x="90" y="138">'+E+'</text><text class="valor '+v(I)+'" x="90" y="194">'+I+'</text><text class="valor '+v(D)+'" x="188" y="150">'+D+'</text>';
+    for (var i=0;i<4;i++){
+      s += '<rect class="caja-simb" x="'+X(i)+'" y="118" width="100" height="140"/><path class="raya" d="M'+X(i)+' 220L'+(X(i)+10)+' 230L'+X(i)+' 240"/>'
+        + '<text class="pin" x="'+(X(i)+8)+'" y="165">D</text><text class="pin" x="'+(X(i)+36)+'" y="138">CLR</text><text class="pin" x="'+(X(i)+16)+'" y="235">C</text><text class="pin" x="'+(X(i)+82)+'" y="165">Q</text>'
+        + '<text class="celda-bit '+v(Q[i])+'" x="'+(X(i)+50)+'" y="208" text-anchor="middle">'+Q[i]+'</text>';
+      var xo = X(i)+120;
+      s += '<path class="cable '+v(Q[i])+'" d="M'+(X(i)+100)+' 160H'+(i<3 ? X(i+1) : xo)+'"/><path class="cable '+v(Q[i])+'" d="M'+xo+' 160V40"/>'
+        + (i<3 ? '<circle class="nudo '+v(Q[i])+'" cx="'+xo+'" cy="160" r="4"/>' : '')
+        + '<text class="etq-o" x="'+(xo-8)+'" y="28">O<tspan font-size="13" dy="4">'+(3-i)+'</tspan></text>'
+        + '<text class="valor '+v(Q[i])+'" x="'+(xo+8)+'" y="60">'+Q[i]+'</text>';
+    }
+    $('circuito').innerHTML = s + '</svg>';
+  }
+  function tabla(){
+    var t = '<thead><tr><th class="ent">I</th><th></th>'+[3,2,1,0].map(function(n){ return '<th class="sal">O<sub>'+n+'</sub></th>'; }).join('')+'<th></th></tr></thead><tbody>';
+    for (var r=0;r<=k();r++){
+      var resto = dato.slice(0, dato.length - r), h = hist[r];
+      t += '<tr class="'+(r>0 && r%4===0 ? 'palabra' : '')+'"><td class="resto">'+resto.slice(0,-1)+'<b>'+resto.slice(-1)+'</b></td><td class="flecha">'+(r===0?'→':'↓')+'</td>'
+        + h.Q.map(function(q, i){ return '<td class="q'+(r>0 && i===0 ? ' nuevo' : '')+(i===0?' primera':'')+(i===3?' ultima':'')+'">'+q+'</td>'; }).join('')
+        + '<td class="nota-e">'+(r>0 && !h.E ? 'E = 0: entra 0' : '')+'</td></tr>';
+    }
+    $('tabla').innerHTML = t + '</tbody>';
+  }
+  function pinta(msg){
+    $('e-sitio').innerHTML = '<button class="interruptor" id="b-e" aria-pressed="'+(E===1)+'"><span class="bit">'+E+'</span>E <small>'+(E?'habilitado':'deshabilitado')+'</small></button>';
+    $('b-e').addEventListener('click', function(){ E = 1-E; pinta($('aviso').innerHTML); $('b-e').focus(); });
+    circuito(); tabla();
+    var Q = hist[k()].Q, lleno = k()>0 && k()%4===0;
+    $('lectura').innerHTML = '<div class="dato"><span class="subt">Flancos de reloj</span><b>'+k()+'</b></div>'
+      + '<div class="dato'+(lleno?' lleno':'')+'"><span class="subt">O₃ O₂ O₁ O₀</span><b>'+Q.join(' ')+'</b></div>'
+      + '<div class="dato'+(lleno?' lleno':'')+'"><span class="subt">Leído en decimal</span><b>'+(Q[0]*8+Q[1]*4+Q[2]*2+Q[3])+'</b></div>';
+    $('b-flanco').disabled = k() >= b.length-1;
+    $('aviso').innerHTML = msg || '';
+  }
+  $('b-flanco').addEventListener('click', function(){
+    if (k() >= b.length-1) return;
+    var bit = b[k()], d = E & bit, Q = hist[k()].Q;
+    hist.push({ Q:[d, Q[0], Q[1], Q[2]], E:E });
+    var n = k();
+    pinta(nota('idea', 'Flanco '+n, (E ? 'Ha entrado el bit '+bit+' de I.' : 'E = 0: la AND ha bloqueado el bit '+bit+' de I y ha entrado un 0.')+' Ahora O₃ O₂ O₁ O₀ = '+hist[n].Q.join(' ')+'.'
+      + (n%4===0 ? ' <b>Palabra completa:</b> estos 4 bits son los últimos que han entrado y se pueden leer en paralelo.' : ' Faltan '+(4 - n%4)+' flancos para completar la siguiente palabra.')));
+  });
+  $('b-clr').addEventListener('click', function(){ hist = [{ Q:[0,0,0,0] }]; pinta(nota('idea', 'Registro a cero', 'El pulso de <span style="text-decoration:overline">CLR</span> ha puesto las cuatro salidas a 0 sin esperar al reloj.')); });
+  $('dato').addEventListener('input', function(){
+    var limpio = $('dato').value.replace(/[^01]/g, '');
+    if (limpio !== $('dato').value) $('dato').value = limpio;
+    if (limpio.length >= 2){ dato = limpio; prepara(); pinta(nota('idea', 'Dato nuevo', 'El registro empieza vacío. El bit de la derecha, '+limpio.slice(-1)+', es el primero que entrará.')); }
+    else pinta(nota('cuidado', 'Dato demasiado corto', 'Escribe al menos dos bits (solo 0 y 1).'));
+  });
+
+  prepara();
+  for (var i=0;i<4;i++){ var Q = hist[k()].Q; hist.push({ Q:[b[k()], Q[0], Q[1], Q[2]], E:1 }); }
+  pinta(nota('idea', 'Palabra completa', 'Ya se han dado 4 flancos: O₃ O₂ O₁ O₀ = '+hist[4].Q.join(' ')+', la fila recuadrada de la lección.'));
+
+  var PREG = [
+    { q:'¿Qué diferencia hay entre el esquema de un registro SIPO y el de un SISO?', ops:['El SIPO usa biestables JK','El SIPO tiene salidas en cada una de las etapas intermedias','El SIPO no tiene reloj'], ok:1, exp:'La cadena de biestables D es la misma; el SIPO solo añade una salida en cada etapa.' },
+    { q:'En el registro de la lección, ¿qué hace la puerta AND de la entrada cuando <code>E = 0</code>?', ops:['Deja pasar I','Hace que al primer biestable le llegue un 0','Pone el registro a cero de forma asíncrona'], ok:1, exp:'Con E = 0 la AND da 0 sea cual sea I. Para poner el registro a cero de golpe está CLR, que es asíncrona.' },
+    { q:'Partiendo del registro vacío, entran los bits del dato <code>1101</code> empezando por la derecha. Tras 4 flancos, ¿qué se lee en O₃ O₂ O₁ O₀?', ops:['1 0 1 1','1 1 0 1','0 0 0 0'], ok:1, exp:'Tras 4 flancos, las salidas O₃ O₂ O₁ O₀ contienen el dato en el mismo orden en que está escrito: 1101.' },
+    { q:'¿Cada cuántos flancos de reloj hay una palabra nueva de 4 bits lista para leer?', ops:['Cada flanco','Cada 4 flancos','Cada 8 flancos'], ok:1, exp:'Cada flanco entra un bit, así que hacen falta 4 flancos para renovar los 4 bits del registro.' }
+  ];
+  var Rt = $('reto');
+  PREG.forEach(function(p, i){
+    var div = document.createElement('div'); div.className = 'pregunta';
+    div.innerHTML = '<div><span class="etiqueta etiqueta-neutra">Pregunta '+(i+1)+'</span></div><div>'+p.q+'</div><div class="opciones" role="group" aria-label="Opciones de la pregunta '+(i+1)+'">'+p.ops.map(function(o,j){ return '<button class="boton" data-j="'+j+'" aria-pressed="false">'+o+'</button>'; }).join('')+'</div><div class="feedback"></div>';
+    Rt.appendChild(div);
+    div.querySelectorAll('.opciones .boton').forEach(function(b2){
+      b2.addEventListener('click', function(){
+        div.querySelectorAll('.opciones .boton').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+        b2.setAttribute('aria-pressed','true');
+        var ok = +b2.dataset.j === p.ok;
+        div.querySelector('.feedback').innerHTML = nota(ok?'correcto':'incorrecto', ok?'Correcto':'Incorrecto', p.exp);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -18,3 +18,4 @@ Web: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
 | [biestable-d.html](biestable-d.html) | 6.2.4 · Biestable D: construcción con un JK, cronograma, latch D y cerrojos sobre un bus |
 | [registros.html](registros.html) | 6.3 · Registros: SISO, SIPO, PISO y PIPO en un registro de 4 bits |
 | [registro-siso.html](registro-siso.html) | 6.3 · Registro SISO: biestables D encadenados con CLR, el ejemplo de la lección paso a paso |
+| [registro-sipo.html](registro-sipo.html) | 6.3 · Registro SIPO: salidas en cada etapa y AND de habilitación |

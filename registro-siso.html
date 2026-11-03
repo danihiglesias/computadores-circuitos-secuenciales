@@ -186,7 +186,10 @@ tr.nuevo td { animation:aparece 600ms ease-out; }
 .tabla-siso td.q.nuevo { background:var(--dorado-suave); }
 .tabla-siso td.o { text-align:left; color:var(--tinta); }
 .tabla-siso td.o b { color:var(--vitor); }
-.tabla-siso tr.actual td.q { box-shadow:inset 0 2px 0 var(--tinta), inset 0 -2px 0 var(--tinta); }
+.tabla-siso tr.actual td.q { background:var(--dorado-suave); }
+.tabla-siso tr.palabra td.q { box-shadow:inset 0 2px 0 var(--tinta), inset 0 -2px 0 var(--tinta); }
+.tabla-siso tr.palabra td.q.primera { box-shadow:inset 2px 2px 0 var(--tinta), inset 0 -2px 0 var(--tinta); }
+.tabla-siso tr.palabra td.q.ultima { box-shadow:inset -2px 2px 0 var(--tinta), inset 0 -2px 0 var(--tinta); }
 .crono svg { min-width:760px; }
 .onda { fill:none; stroke-width:2.2; stroke-linejoin:round; stroke:var(--tinta); }
 .onda.q { stroke:var(--centenario); } .onda.o { stroke:var(--vitor); }
@@ -199,7 +202,7 @@ tr.nuevo td { animation:aparece 600ms ease-out; }
 </head>
 <body>
 
-<nav class="nav-leccion" aria-label="Navegación del tema"><a href="index.html">← Índice del tema 6</a><span>11 / 11</span><span><a href="registros.html">← Registros</a></span></nav>
+<nav class="nav-leccion" aria-label="Navegación del tema"><a href="index.html">← Índice del tema 6</a><span>11 / 12</span><span><a href="registros.html">← Registros</a> · <a href="registro-sipo.html">Registro SIPO →</a></span></nav>
 <div class="wrap">
 <header class="prosa">
   <div class="cabecera">
@@ -231,7 +234,7 @@ tr.nuevo td { animation:aparece 600ms ease-out; }
       <div class="col">
         <div class="nota nota-idea">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/></svg>
-          <div><b>Cómo leer la tabla</b><div class="cuerpo">A la izquierda, lo que queda del dato; el bit verde es el que hay en <code>I</code> y entrará en el siguiente flanco. En el centro, Q<sub>1</sub> Q<sub>2</sub> Q<sub>3</sub> Q<sub>4</sub> tras cada flanco. A la derecha, los bits que han ido apareciendo en <code>O</code>, el más reciente a la izquierda en rojo.</div></div>
+          <div><b>Cómo leer la tabla</b><div class="cuerpo">A la izquierda, lo que queda del dato; el bit verde es el que hay en <code>I</code> y entrará en el siguiente flanco. En el centro, Q<sub>1</sub> Q<sub>2</sub> Q<sub>3</sub> Q<sub>4</sub> tras cada flanco. A la derecha, los bits que han ido apareciendo en <code>O</code>, el más reciente a la izquierda en rojo. Cada 4 flancos el registro contiene 4 bits completos del dato: esas filas van recuadradas.</div></div>
         </div>
         <div class="nota nota-cuidado">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/></svg>
@@ -296,8 +299,8 @@ tr.nuevo td { animation:aparece 600ms ease-out; }
     for (var r=0;r<=k;r++){
       var resto = dato.slice(0, dato.length - r), Q = S[r];
       var outs = []; for (var j=r;j>=0;j--) outs.push(S[j][3]);
-      t += '<tr class="'+(r===k?'actual':'')+'"><td class="resto">'+(resto.slice(0,-1))+'<b>'+resto.slice(-1)+'</b></td><td class="flecha">'+(r===0?'→':'↓')+'</td>'
-        + Q.map(function(q, i){ return '<td class="q'+(r>0 && i===0 ? ' nuevo' : '')+'">'+q+'</td>'; }).join('')
+      t += '<tr class="'+(r===k?'actual':'')+(r>0 && r%4===0?' palabra':'')+'"><td class="resto">'+(resto.slice(0,-1))+'<b>'+resto.slice(-1)+'</b></td><td class="flecha">'+(r===0?'→':'↓')+'</td>'
+        + Q.map(function(q, i){ return '<td class="q'+(r>0 && i===0 ? ' nuevo' : '')+(i===0?' primera':'')+(i===3?' ultima':'')+'">'+q+'</td>'; }).join('')
         + '<td>→</td><td class="o"><b>'+outs[0]+'</b>'+outs.slice(1).join('')+'</td></tr>';
     }
     $('tabla').innerHTML = t + '</tbody>';
