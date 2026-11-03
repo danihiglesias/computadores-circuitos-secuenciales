@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Biestable D</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Lato:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+
+/* Layout: columna de lectura (68 ch) con el simulador a ancho completo; tema único claro del sistema Computadores */
+:root {
+  --papel:#f8f4ec; --papel-elevado:#ffffff; --papel-hundido:#efe8db; --piedra:#e3d9c8; --piedra-fuerte:#857869;
+  --tinta:#2a2420; --tinta-suave:#6b5f55;
+  --vitor:#a8192b; --vitor-suave:#f7dddc; --sobre-vitor:#ffffff;
+  --dorado:#d9a441; --dorado-texto:#8a5a0a; --dorado-suave:#fbeed2;
+  --centenario:#385e9d; --centenario-suave:#dde6f4; --sobre-centenario:#ffffff;
+  --correcto:#1f6f43; --correcto-suave:#dcefe2;
+  --incorrecto:var(--vitor); --incorrecto-suave:var(--vitor-suave);
+  --foco:var(--centenario);
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px; --space-8:64px;
+  --radius-sm:6px; --radius-md:12px; --radius-lg:20px; --radius-pill:999px;
+  --sombra-tarjeta:0 1px 2px rgba(42,36,32,.06), 0 4px 12px rgba(42,36,32,.06);
+  --font-display:"Bricolage Grotesque","Lato",system-ui,sans-serif;
+  --font-sans:"Lato",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+* { box-sizing:border-box; }
+body { background:var(--papel); color:var(--tinta); font-family:var(--font-sans); font-size:17px; line-height:27px; margin:0;
+  padding-block:var(--space-6) var(--space-8); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+.wrap { max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:var(--space-7); }
+.prosa { max-width:68ch; }
+.prosa p { margin:0 0 var(--space-4); }
+h1,h2,h3 { font-family:var(--font-display); text-wrap:balance; margin:0; }
+h1 { font-size:40px; line-height:44px; font-weight:700; letter-spacing:-.02em; margin:var(--space-2) 0 var(--space-4); }
+h2 { font-size:28px; line-height:34px; font-weight:600; letter-spacing:-.01em; margin-bottom:var(--space-4); display:inline-block; box-shadow:inset 0 -4px 0 var(--dorado); }
+h3 { font-size:20px; line-height:26px; font-weight:600; }
+.etiqueta { display:inline-flex; align-items:center; gap:var(--space-1); font-size:12px; line-height:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:2px var(--space-2); border-radius:var(--radius-pill); background:var(--vitor-suave); color:var(--vitor); }
+.etiqueta-neutra { background:var(--papel-hundido); color:var(--tinta-suave); }
+.cabecera { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+.cabecera img { width:40px; height:40px; }
+code { font-family:var(--font-mono); font-size:15px; background:var(--papel-hundido); padding:1px 6px; border-radius:var(--radius-sm); }
+
+.nota { display:grid; grid-template-columns:20px 1fr; gap:var(--space-3); padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-elevado); border:1px solid var(--piedra); font-size:15px; line-height:22px; max-width:68ch; }
+.nota svg { width:20px; height:20px; margin-top:1px; }
+.nota b { display:block; margin-bottom:2px; }
+.nota-idea { background:var(--centenario-suave); border-color:var(--centenario-suave); color:var(--centenario); }
+.nota-cuidado { background:var(--dorado-suave); border-color:var(--dorado-suave); color:var(--dorado-texto); }
+.nota-correcto { background:var(--correcto-suave); border-color:var(--correcto-suave); color:var(--correcto); }
+.nota-incorrecto { background:var(--incorrecto-suave); border-color:var(--incorrecto-suave); color:var(--incorrecto); }
+.nota .cuerpo { color:var(--tinta); }
+
+.panel { background:var(--papel-elevado); border-radius:var(--radius-lg); box-shadow:var(--sombra-tarjeta); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-5); }
+.grid2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-5); align-items:start; }
+@media (max-width:720px) { .grid2 { grid-template-columns:1fr; } }
+.col { display:flex; flex-direction:column; gap:var(--space-4); min-width:0; }
+.boton { font:700 15px/20px var(--font-sans); padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; display:inline-flex; align-items:center; gap:var(--space-2); }
+.boton-discreto { background:transparent; border-color:transparent; color:var(--vitor); }
+.boton:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.boton:hover { border-color:var(--vitor); }
+.fila { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; }
+.subt { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); }
+
+/* conjuntos I, O, S */
+.conjuntos { display:grid; gap:var(--space-3); }
+.conjunto { display:grid; grid-template-columns:56px 1fr; gap:var(--space-3); align-items:center; padding:var(--space-3) var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.conjunto .letra { font:600 30px/1 var(--font-display); font-style:italic; text-align:center; }
+.conjunto .letra small { display:block; font:700 11px/14px var(--font-sans); font-style:normal; letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); margin-top:4px; }
+.elementos { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; font-family:var(--font-mono); font-size:15px; }
+.elementos .llave { font-size:24px; color:var(--tinta-suave); }
+.el { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:var(--radius-pill); background:var(--papel-hundido); }
+.el svg { width:20px; height:20px; flex:none; }
+
+/* gestos */
+.gesto { font:700 13px/1 var(--font-mono); padding:3px 7px; border-radius:var(--radius-sm); display:inline-block; min-width:28px; text-align:center; }
+.g-R { background:var(--vitor-suave); color:var(--vitor); }
+.g-Ll { background:var(--centenario-suave); color:var(--centenario); }
+.g-0 { background:var(--correcto-suave); color:var(--correcto); }
+
+/* simulador */
+.nino { display:grid; grid-template-columns:auto 1fr; gap:var(--space-4); align-items:center; padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.cara { width:88px; height:88px; }
+.cara circle.c { fill:var(--dorado-suave); stroke:var(--tinta); stroke-width:1.4; }
+.cara .r { fill:none; stroke:var(--tinta); stroke-width:1.6; stroke-linecap:round; }
+.cara .o { fill:var(--tinta); }
+.cara .lagrima { fill:var(--centenario); }
+.nino .estado-txt { font:600 24px/30px var(--font-display); }
+.nino .estado-txt em { font-style:normal; color:var(--tinta-suave); font-size:15px; font-family:var(--font-sans); font-weight:400; display:block; line-height:20px; }
+.salida-grande { margin-top:var(--space-2); display:flex; align-items:center; gap:var(--space-2); font-size:15px; }
+.salida-grande .gesto { font-size:17px; padding:6px 12px; }
+.entradas .boton svg { width:22px; height:22px; }
+
+.tabla-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+th, td { padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--piedra); text-align:left; white-space:nowrap; }
+thead th { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); background:var(--papel-hundido); }
+td.t { font-family:var(--font-mono); color:var(--tinta-suave); font-variant-numeric:tabular-nums; }
+tr.nuevo td { background:var(--dorado-suave); }
+tr.choque td.ent { box-shadow:inset 3px 0 0 var(--vitor); }
+.transicion td, .transicion th { text-align:center; }
+.transicion tbody th { text-align:left; font-family:var(--font-display); font-size:16px; font-weight:600; background:var(--papel-hundido); }
+.transicion td.activa { background:var(--dorado); }
+.transicion td .sig { display:block; font-size:14px; color:var(--tinta-suave); }
+.transicion td.activa .sig { color:var(--tinta); }
+.transicion tr.fila-actual th { box-shadow:inset 3px 0 0 var(--vitor); }
+
+/* diagrama de bloques */
+.diagrama { overflow-x:auto; }
+.diagrama svg { display:block; width:100%; min-width:520px; height:auto; }
+.d-caja { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.d-mem { fill:var(--dorado-suave); stroke:var(--dorado-texto); stroke-width:1.5; }
+.d-linea { fill:none; stroke:var(--tinta); stroke-width:1.5; }
+.d-realim { fill:none; stroke:var(--vitor); stroke-width:1.8; }
+.d-txt { fill:var(--tinta); font-family:var(--font-display); font-size:17px; font-weight:600; }
+.d-sub { fill:var(--tinta-suave); font-family:var(--font-sans); font-size:13px; }
+.d-var { fill:var(--tinta); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-var-v { fill:var(--vitor); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-flecha { fill:var(--tinta); } .d-flecha-v { fill:var(--vitor); }
+
+/* diagrama de estados */
+#diag-estados { min-width:560px; }
+.arista { fill:none; stroke:var(--tinta-suave); stroke-width:1.6; }
+.e-lentejas { stroke-dasharray:none; } .e-bici { stroke-dasharray:8 6; } .e-futbol { stroke-dasharray:2 5; stroke-linecap:round; }
+.leyenda path { fill:none; stroke:var(--tinta-suave); stroke-width:1.8; }
+.leyenda path.e-act { stroke:var(--vitor); stroke-width:3; }
+.arista.activa { stroke:var(--vitor); stroke-width:3; }
+.etq { font-family:var(--font-mono); font-size:13px; font-weight:500; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:4px; stroke-linejoin:round; }
+.etq.activa { font-weight:700; }
+.etq .o-R { fill:var(--vitor); } .etq .o-Ll { fill:var(--centenario); } .etq .o-0 { fill:var(--correcto); }
+.nodo { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.nodo.actual { fill:var(--dorado-suave); stroke:var(--vitor); stroke-width:3; }
+.nodo-txt { font-family:var(--font-display); font-size:15px; font-weight:600; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:5px; stroke-linejoin:round; }
+.punta { fill:var(--tinta-suave); } .punta-v { fill:var(--vitor); }
+.ley { display:inline-flex; align-items:center; gap:6px; font-size:14px; }
+.ley svg { width:40px; height:8px; }
+.formula { font-family:var(--font-mono); font-size:16px; background:var(--papel-hundido); border-radius:var(--radius-sm); padding:var(--space-3) var(--space-4); display:grid; gap:4px; }
+.formula .v { color:var(--vitor); font-weight:600; }
+
+.comparativa { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); max-width:68ch; }
+@media (max-width:600px) { .comparativa { grid-template-columns:1fr; } }
+.tarjeta { border:1px solid var(--piedra); border-radius:var(--radius-md); padding:var(--space-4); background:var(--papel-elevado); font-size:15px; line-height:22px; }
+.tarjeta h3 { margin-bottom:var(--space-2); }
+.tarjeta ul { margin:0; padding-left:18px; } .tarjeta li { margin-bottom:4px; }
+
+.reto { display:grid; gap:var(--space-4); }
+.pregunta { display:grid; gap:var(--space-3); padding:var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.opciones { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+.opciones .boton[aria-pressed="true"] { background:var(--centenario); border-color:var(--centenario); color:var(--sobre-centenario); }
+.pie { font-size:13px; line-height:18px; color:var(--tinta-suave); }
+.nav-leccion { max-width:960px; margin:0 auto var(--space-5); display:flex; justify-content:space-between; gap:var(--space-3); font-size:14px; flex-wrap:wrap; color:var(--tinta-suave); }
+.nav-leccion a { color:var(--centenario); }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+@keyframes aparece { from { background:var(--dorado); } }
+tr.nuevo td { animation:aparece 600ms ease-out; }
+
+/* 6.2.4 biestable D y latch D: símbolo, tabla, diagrama, JK, cronograma, cerrojo y bus */
+.neg { text-decoration:overline; text-decoration-thickness:1.5px; }
+.circuito { overflow-x:auto; }
+.circuito svg { display:block; width:100%; height:auto; }
+.puerta { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.6; }
+.cable { fill:none; stroke-width:2; stroke-linejoin:round; }
+.cable.v0 { stroke:var(--tinta-suave); } .cable.v1 { stroke:var(--vitor); stroke-width:3; }
+.nudo.v0 { fill:var(--tinta-suave); } .nudo.v1 { fill:var(--vitor); }
+.nombre { font-family:var(--font-sans); font-size:20px; font-weight:700; fill:var(--tinta); }
+.raya { stroke:var(--tinta); stroke-width:1.6; }
+.valor { font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.valor.v0 { fill:var(--tinta-suave); } .valor.v1 { fill:var(--vitor); }
+.caja-simb { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.8; }
+.caja-d { fill:none; stroke:var(--piedra-fuerte); stroke-width:1.4; stroke-dasharray:6 5; }
+.pin { font-family:var(--font-sans); font-size:15px; fill:var(--tinta); }
+.controles { display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:center; }
+.interruptor { font:700 17px/20px var(--font-sans); display:inline-flex; align-items:center; gap:var(--space-3); padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; }
+.interruptor .bit { font:600 17px/1 var(--font-mono); width:32px; height:32px; display:inline-grid; place-items:center; border-radius:var(--radius-sm); background:var(--papel-hundido); border:1px solid var(--piedra); }
+.interruptor[aria-pressed="true"] .bit { background:var(--vitor); border-color:var(--vitor); color:var(--sobre-vitor); }
+.interruptor:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.interruptor small { font-weight:400; color:var(--tinta-suave); font-size:14px; }
+.vista { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,3fr); gap:var(--space-5); align-items:center; }
+@media (max-width:720px) { .vista { grid-template-columns:1fr; } }
+.lectura { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-3); }
+.dato { padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.dato .subt { display:block; }
+.dato b { font:600 24px/32px var(--font-mono); }
+.tabla-verdad td, .tabla-verdad th { text-align:center; font-family:var(--font-mono); }
+.tabla-verdad td:first-child, .tabla-verdad th:first-child { text-align:left; font-family:var(--font-sans); font-weight:700; }
+.tabla-verdad tr.activa td { background:var(--dorado-suave); }
+.tabla-verdad td.sep, .tabla-verdad th.sep { border-left:1px solid var(--piedra-fuerte); }
+sub { font-size:.7em; }
+.ecuacion { white-space:pre-wrap; font-family:var(--font-mono); font-size:18px; text-align:center; padding:var(--space-3); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.fo { font-family:var(--font-mono); font-size:15px; font-weight:600; color:var(--tinta); text-align:center; line-height:22px; }
+.fo span.p { padding:2px 8px; border-radius:var(--radius-sm); background:var(--papel-elevado); white-space:nowrap; }
+.fo.activa span.p { background:var(--dorado); }
+.nodo-e { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.nodo-e.actual { fill:var(--dorado-suave); stroke:var(--vitor); stroke-width:3; }
+.nodo-e-txt { font-family:var(--font-mono); font-size:22px; font-weight:600; font-style:italic; fill:var(--tinta); }
+.marco-diag { background:var(--centenario-suave); border-radius:var(--radius-lg); padding:var(--space-3); }
+.marco-diag svg { min-width:520px; }
+.crono svg { min-width:720px; }
+.onda { fill:none; stroke-width:2.4; stroke-linejoin:round; }
+.onda.clk { stroke:var(--tinta); } .onda.ent { stroke:var(--tinta); } .onda.alumno { stroke:var(--centenario); stroke-width:2.8; }
+.onda.sol { stroke:var(--vitor); stroke-width:2; stroke-dasharray:6 4; }
+.fondo-fila { fill:var(--papel-hundido); opacity:.7; }
+.seg-mal { fill:var(--vitor-suave); } .seg-bien { fill:var(--correcto-suave); }
+.hueco { fill:transparent; cursor:pointer; } .hueco:hover { fill:var(--dorado-suave); }
+.etq-fila { font-family:var(--font-sans); font-size:15px; font-weight:700; fill:var(--tinta); }
+.etq-sub { font-family:var(--font-sans); font-size:11px; fill:var(--tinta-suave); }
+.flecha-baja { stroke:var(--centenario); stroke-width:1.4; stroke-dasharray:3 3; }
+.bus { display:grid; grid-template-columns:auto 1fr; gap:var(--space-3) var(--space-4); align-items:center; }
+.bus .subt { white-space:nowrap; }
+.bits { display:inline-flex; gap:6px; flex-wrap:wrap; }
+.bits button, .bits i { font:600 20px/1 var(--font-mono); font-style:normal; width:40px; height:44px; display:inline-grid; place-items:center; border-radius:var(--radius-sm); background:var(--papel-elevado); border:1px solid var(--piedra-fuerte); color:var(--tinta); }
+.bits button { cursor:pointer; }
+.bits button:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.bits .uno { background:var(--vitor); border-color:var(--vitor); color:var(--sobre-vitor); }
+.bits i { border-color:var(--piedra); }
+.bits.abierto i { box-shadow:0 0 0 3px var(--dorado-suave); }
+</style>
+</head>
+<body>
+
+<nav class="nav-leccion" aria-label="Navegación del tema"><a href="index.html">← Índice del tema 6</a><span>9 / 9</span><span><a href="biestable-t.html">← Biestable T</a></span></nav>
+<div class="wrap">
+<header class="prosa">
+  <div class="cabecera">
+    <img alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%236b5f55'%3E%3Crect x='18' y='2' width='4' height='8' rx='1'/%3E%3Crect x='30' y='2' width='4' height='8' rx='1'/%3E%3Crect x='42' y='2' width='4' height='8' rx='1'/%3E%3Crect x='18' y='54' width='4' height='8' rx='1'/%3E%3Crect x='30' y='54' width='4' height='8' rx='1'/%3E%3Crect x='42' y='54' width='4' height='8' rx='1'/%3E%3Crect x='2' y='18' width='8' height='4' rx='1'/%3E%3Crect x='2' y='30' width='8' height='4' rx='1'/%3E%3Crect x='2' y='42' width='8' height='4' rx='1'/%3E%3Crect x='54' y='18' width='8' height='4' rx='1'/%3E%3Crect x='54' y='30' width='8' height='4' rx='1'/%3E%3Crect x='54' y='42' width='8' height='4' rx='1'/%3E%3C/g%3E%3Crect x='8' y='8' width='48' height='48' rx='12' fill='%23a8192b'/%3E%3Crect x='16' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='25' y='24' width='7' height='16' rx='2' fill='%23f7dddc' fill-opacity='.35'/%3E%3Crect x='34' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='43' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3C/svg%3E">
+    <span class="etiqueta">Computadores · Tema 6 · 6.2 Biestables</span>
+  </div>
+  <h1>Biestable D</h1>
+  <p>El <strong>biestable D</strong> (<i>delay</i>, retardo) <strong>es síncrono</strong>. Presenta una <strong>entrada <code>D</code></strong> y una <strong>salida <code>Q</code></strong>. <strong>Cuando el biestable está activo, la entrada <code>D</code> se transfiere a la salida <code>Q</code></strong>, y ahí se queda hasta la siguiente activación.</p>
+  <p>En esta página, el biestable D es activo por <strong>flanco de bajada</strong>, como el ejemplo de la lección: el círculo delante del triángulo en <code>C</code> lo indica.</p>
+</header>
+
+<section>
+  <h2>Pruébalo</h2>
+  <div class="prosa"><p>Elige <code>D</code> y después sube y baja el reloj <code>C</code>. Solo al bajar <code>C</code> el biestable «atrapa» el valor de <code>D</code>.</p></div>
+  <div class="panel">
+    <div class="controles" id="controles"></div>
+    <div class="vista">
+      <div class="circuito" id="simbolo"></div>
+      <div class="col">
+        <div class="tabla-wrap">
+          <table class="tabla-verdad" id="tabla-verdad">
+            <thead><tr><th>Función</th><th class="sep">C</th><th class="sep">Q<sub>n+1</sub></th></tr></thead>
+            <tbody>
+              <tr data-k="baja"><td>Atrapa</td><td class="sep">↓</td><td class="sep">D</td></tr>
+              <tr data-k="otro"><td>Neutro</td><td class="sep">otro</td><td class="sep">Q<sub>n</sub></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="pie" style="margin:0">↓ es el flanco de bajada de C; «otro», cualquier otra cosa.</p>
+        <div class="lectura" id="lectura"></div>
+      </div>
+    </div>
+    <div id="aviso"></div>
+    <div class="subt">Construido con un biestable JK</div>
+    <div class="circuito" id="circuito"></div>
+    <div class="fila"><button class="boton boton-discreto" id="b-reset">Empezar de nuevo con Q = 0</button></div>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>A partir de un JK</h2>
+  <p>Al igual que el biestable T, podemos construir un biestable D a partir de un JK: llevamos <code>D</code> a <code>J</code> y su negada a <code>K</code>. Así el JK solo recibe <i>set</i> o <i>reset</i>, nunca neutro ni complemento.</p>
+  <div class="tabla-wrap">
+    <table class="tabla-verdad" style="max-width:420px">
+      <thead><tr><th>D</th><th class="sep">J</th><th>K</th><th class="sep">El JK hace</th></tr></thead>
+      <tbody>
+        <tr><td style="font-family:var(--font-mono)">0</td><td class="sep">0</td><td>1</td><td class="sep" style="font-family:var(--font-sans)">Reset: Q = 0</td></tr>
+        <tr><td style="font-family:var(--font-mono)">1</td><td class="sep">1</td><td>0</td><td class="sep" style="font-family:var(--font-sans)">Set: Q = 1</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="ecuacion" style="margin-top:var(--space-4)">J = D        K = <span class="neg">D</span></div>
+</section>
+
+<section>
+  <h2>Diagrama de estados</h2>
+  <div class="prosa"><p>En cada flanco de bajada el biestable va al estado que indica <code>D</code>, venga de donde venga. La última transición del simulador aparece resaltada.</p></div>
+  <div class="marco-diag circuito">
+    <svg id="diag" viewBox="0 0 640 260" role="img" aria-label="Diagrama de estados del biestable D: con flanco de bajada, D=1 lleva a Q=1 y D=0 lleva a Q=0."></svg>
+  </div>
+</section>
+
+<section>
+  <h2>Ejercicio: el cronograma</h2>
+  <div class="prosa"><p>Este es el cronograma de la lección, con una entrada <code>D</code> de ejemplo. Supón que el biestable empieza con <code>Q = 0</code>. <strong>Dibuja la salida Q</strong> pulsando sobre los tramos de su fila y pulsa <b>Comprobar</b>. Las líneas azules marcan los flancos de bajada.</p></div>
+  <div class="panel">
+    <div class="circuito crono" id="crono"></div>
+    <div class="fila">
+      <button class="boton" id="b-comprobar" style="background:var(--vitor);border-color:var(--vitor);color:var(--sobre-vitor)">Comprobar</button>
+      <button class="boton" id="b-solucion">Ver la solución</button>
+      <button class="boton boton-discreto" id="b-otra">Otra entrada D</button>
+    </div>
+    <div id="aviso-ej"></div>
+  </div>
+</section>
+
+<section>
+  <h2>El latch D o cerrojo</h2>
+  <div class="prosa">
+    <p>Un biestable D, cuando no está activo, es inmune a la señal <code>D</code>. Cuando está activo, «atrapa» la señal <code>D</code> en <code>Q</code>. Por eso, a veces se renombra la señal de reloj a <i>ENABLE</i> y se le llama <strong>latch D (cerrojo)</strong>. Esta puede ser una posible realización de uno de estos cerrojos, activo mientras <i>ENABLE</i> vale 1:</p>
+  </div>
+  <div class="panel">
+    <div class="controles" id="controles-latch"></div>
+    <div class="circuito" id="latch"></div>
+    <div id="aviso-latch"></div>
+  </div>
+  <div class="prosa" style="margin-top:var(--space-5)">
+    <ul>
+      <li>Con <code>ENABLE = 1</code>, la AND de arriba deja pasar <code>D</code> y la de abajo está bloqueada: <code>Q = D</code>. Si <code>D</code> cambia, <code>Q</code> la sigue; se dice que el cerrojo es <strong>transparente</strong>.</li>
+      <li>Con <code>ENABLE = 0</code>, la AND de arriba está bloqueada y la de abajo realimenta <code>Q</code>: la salida se queda con el último valor de <code>D</code>.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <h2>Atrapar un bus</h2>
+  <div class="prosa"><p>Esta configuración normalmente se repite varias veces con una señal de <i>ENABLE</i> común para <strong>atrapar el contenido de un bus en un instante concreto</strong>, como hace el circuito integrado 7475. Cambia los bits del bus y sube y baja <i>ENABLE</i>.</p></div>
+  <div class="panel">
+    <div class="bus">
+      <span class="subt">Bus D₃ D₂ D₁ D₀</span><div class="bits" id="bus-ent"></div>
+      <span class="subt">ENABLE</span><div class="controles" id="bus-en"></div>
+      <span class="subt">Salidas Q₃ Q₂ Q₁ Q₀</span><div class="bits" id="bus-sal"></div>
+    </div>
+    <div id="aviso-bus"></div>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Compruébalo</h2>
+  <div class="reto" id="reto"></div>
+  <p class="pie">Las respuestas se corrigen en la página; nada se envía a ningún sitio.</p>
+</section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var v = function(x){ return 'v'+x; };
+  function nota(tipo, titulo, cuerpo){
+    var ico = tipo==='cuidado' ? '<path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/>' : tipo==='correcto' ? '<path d="M3 10l4 4 10-9"/>' : tipo==='incorrecto' ? '<path d="M5 5l10 10M15 5 5 15"/>' : '<path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/>';
+    return '<div class="nota nota-'+tipo+'" role="status"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ico+'</svg><div><b>'+titulo+'</b><div class="cuerpo">'+cuerpo+'</div></div></div>';
+  }
+  function interruptor(id, nombre, valor, sub){ return '<button class="interruptor" data-k="'+id+'" aria-pressed="'+(valor===1)+'"><span class="bit">'+valor+'</span>'+nombre+(sub?' <small>'+sub+'</small>':'')+'</button>'; }
+  function and(x0, cy){ var h = 30; return '<path class="puerta" d="M'+x0+' '+(cy-h)+'H'+(x0+30)+'A'+h+' '+h+' 0 0 1 '+(x0+30)+' '+(cy+h)+'H'+x0+'Z"/>'; }
+  function or(x0, cy){ var h = 30, L = 80; return '<path class="puerta" d="M'+x0+' '+(cy-h)+'Q'+(x0+15)+' '+cy+' '+x0+' '+(cy+h)+'Q'+(x0+L*0.6)+' '+(cy+h)+' '+(x0+L)+' '+cy+'Q'+(x0+L*0.6)+' '+(cy-h)+' '+x0+' '+(cy-h)+'Z"/>'; }
+  function not(x0, cy){ return '<path class="puerta" d="M'+x0+' '+(cy-14)+'L'+(x0+30)+' '+cy+'L'+x0+' '+(cy+14)+'Z"/><circle class="puerta" cx="'+(x0+36)+'" cy="'+cy+'" r="6"/>'; }
+
+  // biestable D por flanco de bajada
+  function simbolo(D, C, Q){
+    return '<svg viewBox="0 0 300 200" role="img" aria-label="Símbolo del biestable D activo por flanco de bajada: D='+D+', C='+C+', Q='+Q+'." style="max-width:300px;margin:0 auto">'
+      + '<path class="cable '+v(D)+'" d="M30 70H100"/><path class="cable '+v(C)+'" d="M30 130H88"/><path class="cable '+v(Q)+'" d="M200 70H270"/>'
+      + '<rect class="caja-simb" x="100" y="30" width="100" height="140"/><circle class="puerta" cx="94" cy="130" r="6"/><path class="raya" style="fill:none" d="M100 120L112 130L100 140"/>'
+      + '<text class="pin" x="112" y="76">D</text><text class="pin" x="120" y="136">C</text><text class="pin" x="176" y="76">Q</text>'
+      + '<text class="valor '+v(D)+'" x="44" y="60">'+D+'</text><text class="valor '+v(C)+'" x="44" y="120">'+C+'</text><text class="valor '+v(Q)+'" x="240" y="60">'+Q+'</text></svg>';
+  }
+  function circuito(D, C, Q){
+    var Dn = 1-D, Qn = 1-Q;
+    return '<svg viewBox="0 0 640 250" style="min-width:500px" role="img" aria-label="Biestable D construido con un JK: J=D, K=D negada mediante un inversor, reloj activo por flanco de bajada.">'
+      + '<rect class="caja-d" x="120" y="14" width="390" height="222" rx="4"/>'
+      + '<path class="cable '+v(D)+'" d="M50 60H320M160 60V190H200"/><circle class="nudo '+v(D)+'" cx="160" cy="60" r="4.5"/>'
+      + not(200, 190) + '<path class="cable '+v(Dn)+'" d="M242 190H320"/>'
+      + '<path class="cable '+v(C)+'" d="M50 125H308"/><circle class="puerta" cx="314" cy="125" r="6"/>'
+      + '<path class="cable '+v(Q)+'" d="M440 60H580"/><path class="cable '+v(Qn)+'" d="M440 190H490"/>'
+      + '<rect class="caja-simb" x="320" y="30" width="120" height="190"/><path class="raya" style="fill:none" d="M320 115L332 125L320 135"/>'
+      + '<text class="pin" x="332" y="66">J</text><text class="pin" x="340" y="131">C</text><text class="pin" x="332" y="196">K</text>'
+      + '<text class="pin" x="416" y="66">Q</text><text class="pin" x="416" y="196">Q</text><line class="raya" x1="416" y1="181" x2="428" y2="181"/>'
+      + '<text class="nombre" x="22" y="67">D</text><text class="nombre" x="22" y="132">C</text><text class="nombre" x="592" y="67">Q</text>'
+      + '<text class="valor '+v(D)+'" x="80" y="50">'+D+'</text><text class="valor '+v(C)+'" x="80" y="115">'+C+'</text><text class="valor '+v(Dn)+'" x="280" y="180">'+Dn+'</text>'
+      + '<text class="valor '+v(Q)+'" x="500" y="50">'+Q+'</text></svg>';
+  }
+
+  var sim;
+  function reset(){ sim = { D:0, C:0, Q:0, ultima:null, ev:null }; render(); }
+  function cambia(k){
+    if (k==='D'){ sim.D = 1-sim.D; sim.ev = 'D'; }
+    else {
+      var antes = sim.Q; sim.C = 1-sim.C;
+      if (!sim.C){ sim.Q = sim.D; sim.ultima = { s:antes, d:sim.D }; sim.ev = 'baja'; } else sim.ev = 'sube';
+    }
+    render();
+  }
+  function render(){
+    $('controles').innerHTML = interruptor('D', 'D', sim.D, 'dato') + interruptor('C', 'C', sim.C, sim.C ? 'bajar: atrapa' : 'subir');
+    $('simbolo').innerHTML = simbolo(sim.D, sim.C, sim.Q);
+    $('circuito').innerHTML = circuito(sim.D, sim.C, sim.Q);
+    $('lectura').innerHTML = '<div class="dato"><span class="subt">D</span><b>'+sim.D+'</b></div><div class="dato"><span class="subt">Q</span><b>'+sim.Q+'</b></div>';
+    document.querySelectorAll('#tabla-verdad tbody tr').forEach(function(tr){ tr.classList.toggle('activa', !!sim.ev && tr.dataset.k===(sim.ev==='baja'?'baja':'otro')); });
+    $('aviso').innerHTML = sim.ev==='baja' ? nota('idea', 'Flanco de bajada: atrapa', 'C ha bajado y Q ha tomado el valor de D: Q = '+sim.Q+'.')
+      : sim.ev==='sube' ? nota('idea', 'Flanco de subida: neutro', 'Este biestable no reacciona al flanco de subida. Baja C para atrapar D.')
+      : sim.ev==='D' ? nota('idea', 'D ha cambiado', 'Q sigue a '+sim.Q+': el biestable es inmune a D hasta el próximo flanco de bajada.')
+      : nota('idea', 'Listo', 'Pon D a 1 y haz un ciclo de reloj: sube C y bájala.');
+    diagrama();
+    document.querySelectorAll('#controles .interruptor').forEach(function(b){
+      b.addEventListener('click', function(){ var k = b.dataset.k; cambia(k); var n = document.querySelector('#controles [data-k="'+k+'"]'); if (n) n.focus(); });
+    });
+  }
+  $('b-reset').addEventListener('click', reset);
+
+  var NODO = { 0:[220,140], 1:[420,140] };
+  var ARISTA = [
+    { s:0, d:0, et:'D=0, ↓', d2:'M196 105C160 40 100 90 178 124', l:[120,40] },
+    { s:0, d:1, et:'D=1, ↓', d2:'M250 108Q320 60 390 108', l:[320,52] },
+    { s:1, d:0, et:'D=0, ↓', d2:'M390 172Q320 220 250 172', l:[320,228] },
+    { s:1, d:1, et:'D=1, ↓', d2:'M444 105C480 40 540 90 462 124', l:[520,40] }
+  ];
+  function diagrama(){
+    var u = sim.ultima, out = '<defs><marker id="pr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="punta" d="M0 0L10 5L0 10z"/></marker><marker id="prv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path class="punta-v" d="M0 0L10 5L0 10z"/></marker></defs>';
+    ARISTA.forEach(function(a){
+      var act = u && u.s===a.s && u.d===a.d;
+      out += '<path class="arista'+(act?' activa':'')+'" d="'+a.d2+'" marker-end="url(#'+(act?'prv':'pr')+')"/>'
+        + '<foreignObject x="'+(a.l[0]-70)+'" y="'+(a.l[1]-14)+'" width="140" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="fo'+(act?' activa':'')+'"><span class="p">'+a.et+'</span></div></foreignObject>';
+    });
+    [0,1].forEach(function(s){
+      var p = NODO[s];
+      out += '<circle class="nodo-e'+(sim.Q===s?' actual':'')+'" cx="'+p[0]+'" cy="'+p[1]+'" r="44"/><text class="nodo-e-txt" x="'+p[0]+'" y="'+(p[1]+8)+'" text-anchor="middle">Q='+s+'</text>';
+    });
+    $('diag').innerHTML = out;
+  }
+  reset();
+  cambia('D'); cambia('C'); cambia('C');
+
+  // ejercicio: 24 cuartos de periodo; C baja en 0-1 y alta en 2-3; flancos de bajada en 4, 8, 12…
+  var N = 24, X0 = 130, W = 27, FILA = 60;
+  var CLK = []; for (var i=0;i<N;i++) CLK.push(i%4>=2 ? 1 : 0);
+  var BAJADAS = []; for (var i=1;i<N;i++) if (!CLK[i] && CLK[i-1]) BAJADAS.push(i);
+  // D cambia solo en huecos impares, nunca justo en un flanco
+  var D_EJ = [0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,1,0,0,0,0,1];
+  var Dx = D_EJ.slice(), dib = [], estado = 'dibujo';
+  function solucion(){ var q = 0, o = []; for (var i=0;i<N;i++){ if (BAJADAS.indexOf(i) >= 0) q = Dx[i-1]; o.push(q); } return o; }
+  function borra(){ dib = []; for (var i=0;i<N;i++) dib.push(0); estado = 'dibujo'; }
+  function otraD(){
+    var d = 0; Dx = [];
+    for (var i=0;i<N;i++){ if (i%2===1 && Math.random() < .4) d = 1-d; Dx.push(d); }
+    if (Dx.indexOf(1) < 0) Dx[N-2] = Dx[N-1] = 1;
+    borra();
+  }
+  borra();
+  function onda(vals, top, cls){
+    var Y = function(b){ return b ? top+12 : top+44; }, d = 'M'+X0+' '+Y(vals[0]);
+    for (var i=0;i<N;i++){ if (i>0 && vals[i]!==vals[i-1]) d += 'V'+Y(vals[i]); d += 'H'+(X0+(i+1)*W); }
+    return '<path class="onda '+cls+'" d="'+d+'"/>';
+  }
+  function cronograma(){
+    var SOL = solucion(), ver = estado!=='dibujo', alto = 3*FILA + 8, top = 2*FILA;
+    var out = '<svg viewBox="0 0 '+(X0+N*W+10)+' '+alto+'" role="img" aria-label="Cronograma del ejercicio: reloj C, entrada D y salida Q del biestable D.">';
+    out += '<rect class="fondo-fila" x="'+X0+'" y="'+(top+4)+'" width="'+(N*W)+'" height="'+(FILA-8)+'" rx="4"/>';
+    // la Q se dibuja por medios periodos (pares de huecos): solo puede cambiar en los flancos
+    if (ver) for (var j=0;j<N/2;j++){ var ok = dib[2*j]===SOL[2*j]; out += '<rect class="'+(ok?'seg-bien':'seg-mal')+'" x="'+(X0+2*j*W+1)+'" y="'+(top+5)+'" width="'+(2*W-2)+'" height="'+(FILA-10)+'"/>'; }
+    out += '<text class="etq-fila" x="0" y="30">C</text><text class="etq-sub" x="0" y="46">reloj</text><text class="etq-fila" x="0" y="'+(FILA+30)+'">D</text><text class="etq-sub" x="0" y="'+(FILA+46)+'">entrada</text><text class="etq-fila" x="0" y="'+(top+30)+'">Q</text><text class="etq-sub" x="0" y="'+(top+46)+'">pulsa para dibujar</text>';
+    BAJADAS.forEach(function(e){ out += '<line class="flecha-baja" x1="'+(X0+e*W)+'" y1="0" x2="'+(X0+e*W)+'" y2="'+alto+'"/>'; });
+    out += onda(CLK, 0, 'clk') + onda(Dx, FILA, 'ent') + onda(dib, top, 'alumno') + (ver ? onda(SOL, top, 'sol') : '');
+    for (var j=0;j<N/2;j++) out += '<rect class="hueco" data-j="'+j+'" x="'+(X0+2*j*W)+'" y="'+(top+4)+'" width="'+(2*W)+'" height="'+(FILA-8)+'" tabindex="0" role="button" aria-label="Cambiar Q en el medio periodo '+(j+1)+'"/>';
+    $('crono').innerHTML = out + '</svg>';
+    $('crono').querySelectorAll('.hueco').forEach(function(r){
+      var cambiaQ = function(){ var j = +r.dataset.j, n = 1-dib[2*j]; dib[2*j] = dib[2*j+1] = n; if (estado==='solucion') estado = 'comprobado'; cronograma(); var e = $('crono').querySelector('.hueco[data-j="'+j+'"]'); if (e) e.focus(); };
+      r.addEventListener('click', cambiaQ);
+      r.addEventListener('keydown', function(ev){ if (ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); cambiaQ(); } });
+    });
+    var mal = 0; for (var j=0;j<N/2;j++) if (dib[2*j]!==SOL[2*j]) mal++;
+    $('aviso-ej').innerHTML = estado==='dibujo' ? nota('idea', 'Cómo dibujar', 'Cada tramo de la fila Q es medio periodo de reloj. Pulsa un tramo para cambiar Q entre 0 y 1. Mira qué vale D justo antes de cada línea azul.')
+      : estado==='solucion' ? nota('idea', 'Solución', 'En cada flanco de bajada, Q copia el valor que tiene D en ese instante y lo mantiene hasta el siguiente. Los cambios de D entre flancos no afectan a Q, y Q va siempre «retrasada» respecto a D: de ahí el nombre <i>delay</i>. La línea discontinua roja es la solución.')
+      : mal ? nota('incorrecto', mal+(mal===1?' tramo no coincide':' tramos no coinciden'), 'Los tramos en rojo no coinciden con la solución (línea discontinua). Q solo cambia en los flancos de bajada, y toma el valor que tiene D en ese momento.')
+      : nota('correcto', 'Correcto', 'Q copia D en cada flanco de bajada y lo mantiene hasta el siguiente.');
+  }
+  $('b-comprobar').addEventListener('click', function(){ estado = 'comprobado'; cronograma(); });
+  $('b-solucion').addEventListener('click', function(){ estado = 'solucion'; cronograma(); });
+  $('b-otra').addEventListener('click', function(){ otraD(); cronograma(); });
+  cronograma();
+
+  // latch D: Q = D·EN + Q·EN̄
+  var lt = { D:1, EN:0, Q:0 };
+  function latch(){
+    if (lt.EN) lt.Q = lt.D;
+    var a1 = lt.D & lt.EN, en = 1-lt.EN, a2 = en & lt.Q;
+    $('controles-latch').innerHTML = interruptor('D', 'D', lt.D, 'dato') + interruptor('EN', 'ENABLE', lt.EN, lt.EN ? 'transparente' : 'cerrado');
+    $('latch').innerHTML = '<svg viewBox="0 0 700 290" style="min-width:560px" role="img" aria-label="Latch D con dos AND, un inversor y una OR: Q = D·ENABLE + Q·ENABLE negada. D='+lt.D+', ENABLE='+lt.EN+', Q='+lt.Q+'.">'
+      + '<rect class="caja-d" x="150" y="20" width="460" height="250" rx="4"/>'
+      + '<path class="cable '+v(lt.D)+'" d="M60 60H304"/>'
+      + '<path class="cable '+v(lt.EN)+'" d="M96 170H240M200 170V90H304"/><circle class="nudo '+v(lt.EN)+'" cx="200" cy="170" r="4.5"/>'
+      + not(240, 170) + '<path class="cable '+v(en)+'" d="M282 170H304"/>'
+      + '<path class="cable '+v(a1)+'" d="M360 75H400V115H444"/><path class="cable '+v(a2)+'" d="M360 185H400V145H444"/>'
+      + '<path class="cable '+v(lt.Q)+'" d="M520 130H650M580 130V250H270V200H304"/><circle class="nudo '+v(lt.Q)+'" cx="580" cy="130" r="4.5"/>'
+      + and(300, 75) + and(300, 185) + or(440, 130)
+      + '<text class="nombre" x="20" y="67">D</text><text class="nombre" x="0" y="177" style="font-size:17px">ENABLE</text><text class="nombre" x="662" y="137">Q</text>'
+      + '<text class="valor '+v(lt.D)+'" x="90" y="50">'+lt.D+'</text><text class="valor '+v(lt.EN)+'" x="130" y="160">'+lt.EN+'</text><text class="valor '+v(en)+'" x="284" y="160">'+en+'</text>'
+      + '<text class="valor '+v(a1)+'" x="372" y="66">'+a1+'</text><text class="valor '+v(a2)+'" x="372" y="204">'+a2+'</text><text class="valor '+v(lt.Q)+'" x="610" y="120">'+lt.Q+'</text>'
+      + '</svg>';
+    $('aviso-latch').innerHTML = lt.EN ? nota('idea', 'ENABLE = 1: transparente', 'La AND de arriba deja pasar D y la de abajo da 0: Q = D = '+lt.Q+'. Cambia D y verás que Q la sigue.')
+      : nota('idea', 'ENABLE = 0: cerrado', 'La AND de arriba da 0 y la de abajo devuelve Q a la OR: Q se mantiene en '+lt.Q+' aunque cambie D.');
+    document.querySelectorAll('#controles-latch .interruptor').forEach(function(b){
+      b.addEventListener('click', function(){ var k = b.dataset.k; lt[k] = 1-lt[k]; latch(); var n = document.querySelector('#controles-latch [data-k="'+k+'"]'); if (n) n.focus(); });
+    });
+  }
+  latch();
+
+  // cuatro cerrojos con ENABLE común
+  var bus = { D:[1,0,1,1], EN:0, Q:[0,0,0,0] };
+  function busRender(){
+    if (bus.EN) bus.Q = bus.D.slice();
+    var n = function(a){ return a[0]*8+a[1]*4+a[2]*2+a[3]; };
+    $('bus-ent').innerHTML = bus.D.map(function(b,i){ return '<button class="'+(b?'uno':'')+'" data-i="'+i+'" aria-label="Bit D'+(3-i)+' del bus, vale '+b+'">'+b+'</button>'; }).join('') + '<span style="align-self:center;font:600 18px var(--font-mono)">= '+n(bus.D)+'</span>';
+    $('bus-en').innerHTML = interruptor('EN', 'ENABLE', bus.EN, bus.EN ? 'bajar para atrapar' : 'subir');
+    $('bus-sal').className = 'bits'+(bus.EN?' abierto':'');
+    $('bus-sal').innerHTML = bus.Q.map(function(b){ return '<i class="'+(b?'uno':'')+'">'+b+'</i>'; }).join('') + '<span style="align-self:center;font:600 18px var(--font-mono)">= '+n(bus.Q)+'</span>';
+    $('aviso-bus').innerHTML = bus.EN ? nota('idea', 'Cerrojos abiertos', 'Las salidas copian el bus mientras ENABLE = 1. Baja ENABLE para quedarte con el valor de este instante.')
+      : nota('idea', 'Cerrojos cerrados', 'Las salidas guardan '+n(bus.Q)+' aunque el bus cambie. Prueba a cambiar los bits del bus.');
+    $('bus-ent').querySelectorAll('button').forEach(function(b){ b.addEventListener('click', function(){ var i = +b.dataset.i; bus.D[i] = 1-bus.D[i]; busRender(); $('bus-ent').querySelector('[data-i="'+i+'"]').focus(); }); });
+    $('bus-en').querySelector('.interruptor').addEventListener('click', function(){ bus.EN = 1-bus.EN; busRender(); $('bus-en').querySelector('.interruptor').focus(); });
+  }
+  busRender();
+
+  var PREG = [
+    { q:'Un biestable D activo por flanco de bajada tiene <code>Q = 0</code> y <code>D = 1</code>. El reloj <code>C</code> pasa de 0 a 1. ¿Qué vale Q?', ops:['0','1'], ok:0, exp:'El flanco de subida es «otro» para este biestable: Q se mantiene a 0 hasta el próximo flanco de bajada.' },
+    { q:'¿Cómo se construye un biestable D con un JK?', ops:['J = D y K = D̄','J = K = D','J = 1 y K = D'], ok:0, exp:'Con J = D y K = D̄ el JK solo recibe set (D = 1) o reset (D = 0): Q toma el valor de D en cada flanco activo.' },
+    { q:'¿En qué se diferencia un latch D de un biestable D por flanco?', ops:['El latch copia D durante todo el tiempo en que ENABLE está activo','El latch no tiene memoria','El latch tiene dos salidas'], ok:0, exp:'El latch es activo por nivel: mientras ENABLE = 1 es transparente y Q sigue a D. El de flanco solo copia D en el instante del flanco.' },
+    { q:'En el latch de la lección, con <code>ENABLE = 0</code>, ¿qué hace la AND de abajo?', ops:['Bloquea la salida','Devuelve Q a la OR para mantener su valor','Deja pasar D'], ok:1, exp:'Con ENABLE = 0 su otra entrada vale 1, así que deja pasar Q: la OR recibe Q y la salida se mantiene.' },
+    { q:'¿Para qué se usan varios cerrojos D con un ENABLE común?', ops:['Para dividir la frecuencia','Para atrapar el contenido de un bus en un instante concreto','Para invertir un bus'], ok:1, exp:'Cada cerrojo guarda un bit; al bajar el ENABLE común, todos se quedan con el valor que tenía el bus en ese instante.' }
+  ];
+  var Rt = $('reto');
+  PREG.forEach(function(p, i){
+    var div = document.createElement('div'); div.className = 'pregunta';
+    div.innerHTML = '<div><span class="etiqueta etiqueta-neutra">Pregunta '+(i+1)+'</span></div><div>'+p.q+'</div><div class="opciones" role="group" aria-label="Opciones de la pregunta '+(i+1)+'">'+p.ops.map(function(o,j){ return '<button class="boton" data-j="'+j+'" aria-pressed="false">'+o+'</button>'; }).join('')+'</div><div class="feedback"></div>';
+    Rt.appendChild(div);
+    div.querySelectorAll('.opciones .boton').forEach(function(b){
+      b.addEventListener('click', function(){
+        div.querySelectorAll('.opciones .boton').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+        b.setAttribute('aria-pressed','true');
+        var ok = +b.dataset.j === p.ok;
+        div.querySelector('.feedback').innerHTML = nota(ok?'correcto':'incorrecto', ok?'Correcto':'Incorrecto', p.exp);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

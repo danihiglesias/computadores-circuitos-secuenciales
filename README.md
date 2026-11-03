@@ -15,3 +15,4 @@ Web: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
 | [biestable-jk.html](biestable-jk.html) | 6.2.2 · Biestable JK: complemento, síntesis con RS y dos AND, cronograma |
 | [preset-clear.html](preset-clear.html) | 6.2.2 · Preset y clear: entradas asíncronas, JK con NAND y ejercicio de cronograma |
 | [biestable-t.html](biestable-t.html) | 6.2.3 · Biestable T: construcción con un JK, divisor de frecuencia en cadena y cronograma para dibujar |
+| [biestable-d.html](biestable-d.html) | 6.2.4 · Biestable D: construcción con un JK, cronograma, latch D y cerrojos sobre un bus |
