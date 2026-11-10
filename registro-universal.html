@@ -363,7 +363,10 @@ tr.nuevo td { animation:aparece 600ms ease-out; }
     $('controles').querySelectorAll('.bitbtn').forEach(function(b){ b.addEventListener('click', function(){
       var k = b.dataset.k;
       if (k[0]==='P') st.P[+k.slice(1)] = 1 - st.P[+k.slice(1)]; else st[k] = 1 - st[k];
-      pinta(k==='CE' && !st.CE ? nota('idea', 'Reloj inhibido', 'Con CE = 0 la AND bloquea el reloj: los flancos de C no llegan a los biestables y el registro simplemente almacena su valor.') : $('aviso').innerHTML);
+      pinta(k==='CE' && !st.CE ? nota('idea', 'Reloj inhibido', 'Con CE = 0 la AND bloquea el reloj: los flancos de C no llegan a los biestables y el registro simplemente almacena su valor.')
+        : k[0]==='P' && st.SP ? nota('cuidado', 'Con S/P = 1 las entradas en paralelo no se cargan', 'Ahora el registro está en salida serie: en cada flanco desplaza y no mira I₃ … I₀. Pon S/P = 0 y da un flanco para cargarlas.')
+        : k==='SP' ? nota('idea', st.SP ? 'Salida serie' : 'Carga paralela', st.SP ? 'En cada flanco los bits se desplazan una posición y sale uno por O.' : 'En el próximo flanco los cuatro biestables cargan I₃ I₂ I₁ I₀ = '+st.P.join(' ')+'.')
+        : $('aviso').innerHTML);
       $('controles').querySelector('[data-k="'+k+'"]').focus();
     }); });
     $('b-flanco').addEventListener('click', function(){ flanco(); $('b-flanco').focus(); });
@@ -383,8 +386,8 @@ tr.nuevo td { animation:aparece 600ms ease-out; }
       : nota('idea', 'Carga paralela', 'En un solo flanco se han cargado I₃ I₂ I₁ I₀ = '+st.P.join(' ')+'. Por O ya aparece I₀ = '+st.Q[3]+'. Pon S/P = 1 para sacar los demás bits uno a uno.'));
   }
 
-  reinicia(); flanco(); st.SP = 1; flanco();
-  pinta(nota('idea', 'Ejemplo en marcha', 'Se ha hecho una carga paralela (S/P = 0) y un desplazamiento (S/P = 1). Sigue dando flancos para sacar el resto de bits por O.'));
+  reinicia();
+  pinta(nota('idea', 'Empieza por la carga paralela', 'Elige los bits I₃ … I₀, deja S/P = 0 y da un flanco de bajada de C: los cuatro se cargan a la vez. Después pon S/P = 1 y sigue dando flancos para sacarlos de uno en uno por O.'));
 
 
   // registro bidireccional: D = R·Q(izquierda) + L·Q(derecha), con L = R negada
