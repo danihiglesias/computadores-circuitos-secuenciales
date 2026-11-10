@@ -307,7 +307,7 @@ tr.nuevo td { animation:aparece 600ms ease-out; }
       // R y S
       s += '<path class="cable '+v(d.R)+'" d="M'+(x+50)+' 218V300H'+(x+80)+'"/><circle class="nudo '+v(d.R)+'" cx="'+(x+50)+'" cy="300" r="3.5"/>'
         + '<text class="valor '+v(d.R)+'" x="'+(x+56)+'" y="244">R='+d.R+'</text>'
-        + inv(x+50, 318) + '<path class="cable '+v(d.S)+'" d="M'+(x+50)+' 344V390H'+(x+80)+'"/><text class="valor '+v(d.S)+'" x="'+(x+14)+'" y="378">S='+d.S+'</text>';
+        + '<path class="cable '+v(d.R)+'" d="M'+(x+50)+' 300V318"/>' + inv(x+50, 318) + '<path class="cable '+v(d.S)+'" d="M'+(x+50)+' 344V390H'+(x+80)+'"/><text class="valor '+v(d.S)+'" x="'+(x+14)+'" y="378">S='+d.S+'</text>';
       // biestable RS
       s += '<rect class="caja-simb" x="'+(x+80)+'" y="280" width="80" height="125"/><circle class="nudo v1" cx="'+(x+120)+'" cy="262" r="3.5"/><path class="cable v1" d="M'+(x+120)+' 262V269"/><circle class="burbuja" cx="'+(x+120)+'" cy="274" r="5"/>'
         + '<text class="pin" x="'+(x+86)+'" y="305">R</text><text class="pin" x="'+(x+106)+'" y="296">CLR</text><text class="pin" x="'+(x+146)+'" y="305">Q</text><text class="pin" x="'+(x+86)+'" y="394">S</text><text class="pin" x="'+(x+100)+'" y="350">C</text>'
