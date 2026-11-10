@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contador en anillo y Johnson</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Lato:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+
+/* Layout: columna de lectura (68 ch) con el simulador a ancho completo; tema único claro del sistema Computadores */
+:root {
+  --papel:#f8f4ec; --papel-elevado:#ffffff; --papel-hundido:#efe8db; --piedra:#e3d9c8; --piedra-fuerte:#857869;
+  --tinta:#2a2420; --tinta-suave:#6b5f55;
+  --vitor:#a8192b; --vitor-suave:#f7dddc; --sobre-vitor:#ffffff;
+  --dorado:#d9a441; --dorado-texto:#8a5a0a; --dorado-suave:#fbeed2;
+  --centenario:#385e9d; --centenario-suave:#dde6f4; --sobre-centenario:#ffffff;
+  --correcto:#1f6f43; --correcto-suave:#dcefe2;
+  --incorrecto:var(--vitor); --incorrecto-suave:var(--vitor-suave);
+  --foco:var(--centenario);
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px; --space-8:64px;
+  --radius-sm:6px; --radius-md:12px; --radius-lg:20px; --radius-pill:999px;
+  --sombra-tarjeta:0 1px 2px rgba(42,36,32,.06), 0 4px 12px rgba(42,36,32,.06);
+  --font-display:"Bricolage Grotesque","Lato",system-ui,sans-serif;
+  --font-sans:"Lato",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+* { box-sizing:border-box; }
+body { background:var(--papel); color:var(--tinta); font-family:var(--font-sans); font-size:17px; line-height:27px; margin:0;
+  padding-block:var(--space-6) var(--space-8); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+.wrap { max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:var(--space-7); }
+.prosa { max-width:68ch; }
+.prosa p { margin:0 0 var(--space-4); }
+h1,h2,h3 { font-family:var(--font-display); text-wrap:balance; margin:0; }
+h1 { font-size:40px; line-height:44px; font-weight:700; letter-spacing:-.02em; margin:var(--space-2) 0 var(--space-4); }
+h2 { font-size:28px; line-height:34px; font-weight:600; letter-spacing:-.01em; margin-bottom:var(--space-4); display:inline-block; box-shadow:inset 0 -4px 0 var(--dorado); }
+h3 { font-size:20px; line-height:26px; font-weight:600; }
+.etiqueta { display:inline-flex; align-items:center; gap:var(--space-1); font-size:12px; line-height:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:2px var(--space-2); border-radius:var(--radius-pill); background:var(--vitor-suave); color:var(--vitor); }
+.etiqueta-neutra { background:var(--papel-hundido); color:var(--tinta-suave); }
+.cabecera { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+.cabecera img { width:40px; height:40px; }
+code { font-family:var(--font-mono); font-size:15px; background:var(--papel-hundido); padding:1px 6px; border-radius:var(--radius-sm); }
+
+.nota { display:grid; grid-template-columns:20px 1fr; gap:var(--space-3); padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-elevado); border:1px solid var(--piedra); font-size:15px; line-height:22px; max-width:68ch; }
+.nota svg { width:20px; height:20px; margin-top:1px; }
+.nota b { display:block; margin-bottom:2px; }
+.nota-idea { background:var(--centenario-suave); border-color:var(--centenario-suave); color:var(--centenario); }
+.nota-cuidado { background:var(--dorado-suave); border-color:var(--dorado-suave); color:var(--dorado-texto); }
+.nota-correcto { background:var(--correcto-suave); border-color:var(--correcto-suave); color:var(--correcto); }
+.nota-incorrecto { background:var(--incorrecto-suave); border-color:var(--incorrecto-suave); color:var(--incorrecto); }
+.nota .cuerpo { color:var(--tinta); }
+
+.panel { background:var(--papel-elevado); border-radius:var(--radius-lg); box-shadow:var(--sombra-tarjeta); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-5); }
+.grid2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-5); align-items:start; }
+@media (max-width:720px) { .grid2 { grid-template-columns:1fr; } }
+.col { display:flex; flex-direction:column; gap:var(--space-4); min-width:0; }
+.boton { font:700 15px/20px var(--font-sans); padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; display:inline-flex; align-items:center; gap:var(--space-2); }
+.boton-discreto { background:transparent; border-color:transparent; color:var(--vitor); }
+.boton:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.boton:hover { border-color:var(--vitor); }
+.fila { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; }
+.subt { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); }
+
+/* conjuntos I, O, S */
+.conjuntos { display:grid; gap:var(--space-3); }
+.conjunto { display:grid; grid-template-columns:56px 1fr; gap:var(--space-3); align-items:center; padding:var(--space-3) var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.conjunto .letra { font:600 30px/1 var(--font-display); font-style:italic; text-align:center; }
+.conjunto .letra small { display:block; font:700 11px/14px var(--font-sans); font-style:normal; letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); margin-top:4px; }
+.elementos { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; font-family:var(--font-mono); font-size:15px; }
+.elementos .llave { font-size:24px; color:var(--tinta-suave); }
+.el { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:var(--radius-pill); background:var(--papel-hundido); }
+.el svg { width:20px; height:20px; flex:none; }
+
+/* gestos */
+.gesto { font:700 13px/1 var(--font-mono); padding:3px 7px; border-radius:var(--radius-sm); display:inline-block; min-width:28px; text-align:center; }
+.g-R { background:var(--vitor-suave); color:var(--vitor); }
+.g-Ll { background:var(--centenario-suave); color:var(--centenario); }
+.g-0 { background:var(--correcto-suave); color:var(--correcto); }
+
+/* simulador */
+.nino { display:grid; grid-template-columns:auto 1fr; gap:var(--space-4); align-items:center; padding:var(--space-4); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.cara { width:88px; height:88px; }
+.cara circle.c { fill:var(--dorado-suave); stroke:var(--tinta); stroke-width:1.4; }
+.cara .r { fill:none; stroke:var(--tinta); stroke-width:1.6; stroke-linecap:round; }
+.cara .o { fill:var(--tinta); }
+.cara .lagrima { fill:var(--centenario); }
+.nino .estado-txt { font:600 24px/30px var(--font-display); }
+.nino .estado-txt em { font-style:normal; color:var(--tinta-suave); font-size:15px; font-family:var(--font-sans); font-weight:400; display:block; line-height:20px; }
+.salida-grande { margin-top:var(--space-2); display:flex; align-items:center; gap:var(--space-2); font-size:15px; }
+.salida-grande .gesto { font-size:17px; padding:6px 12px; }
+.entradas .boton svg { width:22px; height:22px; }
+
+.tabla-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+th, td { padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--piedra); text-align:left; white-space:nowrap; }
+thead th { font:700 12px/16px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-suave); background:var(--papel-hundido); }
+td.t { font-family:var(--font-mono); color:var(--tinta-suave); font-variant-numeric:tabular-nums; }
+tr.nuevo td { background:var(--dorado-suave); }
+tr.choque td.ent { box-shadow:inset 3px 0 0 var(--vitor); }
+.transicion td, .transicion th { text-align:center; }
+.transicion tbody th { text-align:left; font-family:var(--font-display); font-size:16px; font-weight:600; background:var(--papel-hundido); }
+.transicion td.activa { background:var(--dorado); }
+.transicion td .sig { display:block; font-size:14px; color:var(--tinta-suave); }
+.transicion td.activa .sig { color:var(--tinta); }
+.transicion tr.fila-actual th { box-shadow:inset 3px 0 0 var(--vitor); }
+
+/* diagrama de bloques */
+.diagrama { overflow-x:auto; }
+.diagrama svg { display:block; width:100%; min-width:520px; height:auto; }
+.d-caja { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.d-mem { fill:var(--dorado-suave); stroke:var(--dorado-texto); stroke-width:1.5; }
+.d-linea { fill:none; stroke:var(--tinta); stroke-width:1.5; }
+.d-realim { fill:none; stroke:var(--vitor); stroke-width:1.8; }
+.d-txt { fill:var(--tinta); font-family:var(--font-display); font-size:17px; font-weight:600; }
+.d-sub { fill:var(--tinta-suave); font-family:var(--font-sans); font-size:13px; }
+.d-var { fill:var(--tinta); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-var-v { fill:var(--vitor); font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.d-flecha { fill:var(--tinta); } .d-flecha-v { fill:var(--vitor); }
+
+/* diagrama de estados */
+#diag-estados { min-width:560px; }
+.arista { fill:none; stroke:var(--tinta-suave); stroke-width:1.6; }
+.e-lentejas { stroke-dasharray:none; } .e-bici { stroke-dasharray:8 6; } .e-futbol { stroke-dasharray:2 5; stroke-linecap:round; }
+.leyenda path { fill:none; stroke:var(--tinta-suave); stroke-width:1.8; }
+.leyenda path.e-act { stroke:var(--vitor); stroke-width:3; }
+.arista.activa { stroke:var(--vitor); stroke-width:3; }
+.etq { font-family:var(--font-mono); font-size:13px; font-weight:500; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:4px; stroke-linejoin:round; }
+.etq.activa { font-weight:700; }
+.etq .o-R { fill:var(--vitor); } .etq .o-Ll { fill:var(--centenario); } .etq .o-0 { fill:var(--correcto); }
+.nodo { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.5; }
+.nodo.actual { fill:var(--dorado-suave); stroke:var(--vitor); stroke-width:3; }
+.nodo-txt { font-family:var(--font-display); font-size:15px; font-weight:600; fill:var(--tinta); paint-order:stroke; stroke:var(--papel-elevado); stroke-width:5px; stroke-linejoin:round; }
+.punta { fill:var(--tinta-suave); } .punta-v { fill:var(--vitor); }
+.ley { display:inline-flex; align-items:center; gap:6px; font-size:14px; }
+.ley svg { width:40px; height:8px; }
+.formula { font-family:var(--font-mono); font-size:16px; background:var(--papel-hundido); border-radius:var(--radius-sm); padding:var(--space-3) var(--space-4); display:grid; gap:4px; }
+.formula .v { color:var(--vitor); font-weight:600; }
+
+.comparativa { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); max-width:68ch; }
+@media (max-width:600px) { .comparativa { grid-template-columns:1fr; } }
+.tarjeta { border:1px solid var(--piedra); border-radius:var(--radius-md); padding:var(--space-4); background:var(--papel-elevado); font-size:15px; line-height:22px; }
+.tarjeta h3 { margin-bottom:var(--space-2); }
+.tarjeta ul { margin:0; padding-left:18px; } .tarjeta li { margin-bottom:4px; }
+
+.reto { display:grid; gap:var(--space-4); }
+.pregunta { display:grid; gap:var(--space-3); padding:var(--space-4); border:1px solid var(--piedra); border-radius:var(--radius-md); background:var(--papel-elevado); }
+.opciones { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+.opciones .boton[aria-pressed="true"] { background:var(--centenario); border-color:var(--centenario); color:var(--sobre-centenario); }
+.pie { font-size:13px; line-height:18px; color:var(--tinta-suave); }
+.nav-leccion { max-width:960px; margin:0 auto var(--space-5); display:flex; justify-content:space-between; gap:var(--space-3); font-size:14px; flex-wrap:wrap; color:var(--tinta-suave); }
+.nav-leccion a { color:var(--centenario); }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+@keyframes aparece { from { background:var(--dorado); } }
+tr.nuevo td { animation:aparece 600ms ease-out; }
+
+/* 6.4.4 contadores con registros de desplazamiento: contador en anillo (con IE e I para introducir el dato) y contador de Johnson */
+.circuito { overflow-x:auto; }
+.circuito svg { display:block; width:100%; height:auto; }
+.cable { fill:none; stroke-width:2; stroke-linejoin:round; }
+.cable.v0 { stroke:var(--tinta-suave); } .cable.v1 { stroke:var(--vitor); stroke-width:3; }
+.nudo.v0 { fill:var(--tinta-suave); } .nudo.v1 { fill:var(--vitor); }
+.caja-simb { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.8; }
+.puerta { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.8; }
+.burbuja { fill:var(--papel-elevado); stroke:var(--tinta); stroke-width:1.6; }
+.raya { stroke:var(--tinta); stroke-width:1.6; fill:none; }
+.pin { font-family:var(--font-sans); font-size:14px; fill:var(--tinta); }
+.etq { font-family:var(--font-sans); font-size:20px; font-weight:700; fill:var(--tinta); }
+.valor { font-family:var(--font-mono); font-size:15px; font-weight:600; }
+.valor.v0 { fill:var(--tinta-suave); } .valor.v1 { fill:var(--vitor); }
+.celda-bit { font:600 30px var(--font-mono); }
+.celda-bit.v0 { fill:var(--tinta-suave); } .celda-bit.v1 { fill:var(--vitor); }
+.controles { display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:center; }
+.grupo { display:inline-flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; padding:var(--space-2) var(--space-3); border-radius:var(--radius-md); background:var(--papel-hundido); }
+.grupo .rotulo { font:700 13px var(--font-sans); color:var(--tinta-suave); letter-spacing:.06em; text-transform:uppercase; }
+.bitbtn { font:600 17px/1 var(--font-mono); min-width:40px; height:38px; padding:0 8px; display:inline-grid; place-items:center; border-radius:var(--radius-sm); background:var(--papel-elevado); border:1px solid var(--piedra-fuerte); color:var(--tinta); cursor:pointer; }
+.bitbtn.uno { background:var(--vitor); border-color:var(--vitor); color:var(--sobre-vitor); }
+.bitbtn:focus-visible, .boton:focus-visible, .tipo button:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+.boton-reloj { background:var(--centenario); border-color:var(--centenario); color:var(--sobre-centenario); }
+.tipo { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+.tipo button { font:700 15px var(--font-sans); padding:var(--space-2) var(--space-4); border-radius:var(--radius-pill); border:1px solid var(--piedra-fuerte); background:var(--papel-elevado); color:var(--tinta); cursor:pointer; }
+.tipo button[aria-pressed="true"] { background:var(--vitor); border-color:var(--vitor); color:var(--sobre-vitor); }
+.ciclo { display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); }
+.ciclo .est { padding:6px 10px; border-radius:var(--radius-sm); background:var(--papel-elevado); border:1px solid var(--piedra); font-size:17px; font-weight:600; color:var(--centenario); letter-spacing:.06em; }
+.ciclo .est.actual { background:var(--dorado-suave); border-color:var(--dorado); color:var(--tinta); box-shadow:0 0 0 2px var(--dorado); }
+.ciclo .fl { color:var(--tinta-suave); font-size:15px; }
+.ciclo .vuelta { color:var(--vitor); font:700 14px var(--font-sans); }
+.crono svg { min-width:760px; }
+.onda { fill:none; stroke-width:2.2; stroke-linejoin:round; stroke:var(--tinta); }
+.onda.q { stroke:var(--centenario); } .onda.o { stroke:var(--vitor); }
+.etq-fila { font-family:var(--font-sans); font-size:16px; font-weight:700; fill:var(--tinta); }
+.flecha-baja { fill:var(--vitor); }
+.guia-baja { stroke:var(--vitor); stroke-width:1; stroke-dasharray:2 4; }
+.neg { text-decoration:overline; text-decoration-thickness:1.5px; }
+.tabla-comp td, .tabla-comp th { text-align:center; }
+.tabla-comp td:first-child, .tabla-comp th:first-child { text-align:left; }
+</style>
+</head>
+<body>
+
+<nav class="nav-leccion" aria-label="Navegación del tema"><a href="index.html">← Índice del tema 6</a><span>20 / 20</span><span><a href="contador-decodificador.html">← Contador y decodificador</a></span></nav>
+<div class="wrap">
+<header class="prosa">
+  <div class="cabecera">
+    <img alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%236b5f55'%3E%3Crect x='18' y='2' width='4' height='8' rx='1'/%3E%3Crect x='30' y='2' width='4' height='8' rx='1'/%3E%3Crect x='42' y='2' width='4' height='8' rx='1'/%3E%3Crect x='18' y='54' width='4' height='8' rx='1'/%3E%3Crect x='30' y='54' width='4' height='8' rx='1'/%3E%3Crect x='42' y='54' width='4' height='8' rx='1'/%3E%3Crect x='2' y='18' width='8' height='4' rx='1'/%3E%3Crect x='2' y='30' width='8' height='4' rx='1'/%3E%3Crect x='2' y='42' width='8' height='4' rx='1'/%3E%3Crect x='54' y='18' width='8' height='4' rx='1'/%3E%3Crect x='54' y='30' width='8' height='4' rx='1'/%3E%3Crect x='54' y='42' width='8' height='4' rx='1'/%3E%3C/g%3E%3Crect x='8' y='8' width='48' height='48' rx='12' fill='%23a8192b'/%3E%3Crect x='16' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='25' y='24' width='7' height='16' rx='2' fill='%23f7dddc' fill-opacity='.35'/%3E%3Crect x='34' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3Crect x='43' y='24' width='7' height='16' rx='2' fill='%23f8f4ec'/%3E%3C/svg%3E">
+    <span class="etiqueta">Computadores I · Tema 6 · 6.4 Contadores</span>
+  </div>
+  <h1>Contadores con registros de desplazamiento</h1>
+  <p>Si <strong>realimentamos un <a href="registro-siso.html">registro de desplazamiento SISO</a></strong>, llevando su salida <code>O</code> de vuelta a la entrada del primer biestable, obtenemos lo que se denomina un <strong>contador en anillo</strong>.</p>
+  <p>Si introducimos un 1, <strong>el 1 se irá desplazando hasta alcanzar el otro extremo para, de nuevo, volver al principio</strong>. Con 4 biestables, el 1 aparece en <code>O</code> una vez cada 4 flancos de reloj.</p>
+  <p>Cuando la realimentación se produce con la <strong>salida negada</strong>, al contador se le llama <strong>contador de Johnson</strong>.</p>
+</header>
+
+<section>
+  <h2>Pruébalo</h2>
+  <div class="prosa"><p>Elige el contador. En el <strong>anillo</strong>, delante del primer biestable hay un selector: con <code>IE = 1</code> entra el bit de <code>I</code> (así se introduce el 1 inicial) y con <code>IE = 0</code> entra la realimentación <code>O</code>. En el <strong>Johnson</strong> no hace falta: entra siempre <code><span class="neg">O</span></code>. Puedes reproducir el cronograma de la lección o dar flancos a tu ritmo.</p></div>
+  <div class="panel">
+    <div class="tipo" role="group" aria-label="Tipo de contador" id="tipo"></div>
+    <div class="controles" id="controles"></div>
+    <div class="controles" id="acciones"></div>
+    <div id="aviso"></div>
+    <div class="circuito" id="circuito"></div>
+    <div class="grid2">
+      <div class="col">
+        <div class="subt">Ciclo de estados Q<sub>1</sub>Q<sub>2</sub>Q<sub>3</sub>Q<sub>4</sub> desde el estado actual</div>
+        <div class="ciclo" id="ciclo"></div>
+        <p class="pie" id="ciclo-pie" style="margin:0"></p>
+      </div>
+      <div class="col" id="nota-tipo"></div>
+    </div>
+    <div class="subt">Cronograma</div>
+    <div class="circuito crono" id="crono"></div>
+    <p class="pie" style="margin:0">Se ha supuesto, como en la lección, que cada biestable tarda un poco en cambiar tras el flanco de bajada: en el flanco, cada uno todavía ve el valor antiguo del anterior. Se muestran los últimos 16 ciclos.</p>
+  </div>
+</section>
+
+<section class="prosa">
+  <h2>Anillo frente a Johnson</h2>
+  <table class="tabla-comp">
+    <thead><tr><th></th><th>Contador en anillo</th><th>Contador de Johnson</th></tr></thead>
+    <tbody>
+      <tr><td>Entrada del primer biestable</td><td><code>O</code> (o <code>I</code> si <code>IE = 1</code>)</td><td><code><span class="neg">O</span></code></td></tr>
+      <tr><td>Estados con <i>n</i> biestables</td><td><i>n</i> (con un solo 1)</td><td>2<i>n</i></td></tr>
+      <tr><td>Con 4 biestables</td><td>1000 → 0100 → 0010 → 0001</td><td>0000 → 1000 → 1100 → 1110 → 1111 → 0111 → 0011 → 0001</td></tr>
+      <tr><td>Tras <span class="neg">CLR</span> (todo a 0)</td><td>Se queda en 0000: hay que introducir el 1</td><td>Arranca solo: entra un 1 porque <span class="neg">O</span> = 1</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="prosa">
+  <h2>Compruébalo</h2>
+  <div class="reto" id="reto"></div>
+  <p class="pie">Las respuestas se corrigen en la página; nada se envía a ningún sitio.</p>
+</section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var v = function(x){ return 'v'+x; };
+  function nota(tipo, titulo, cuerpo){
+    var ico = tipo==='cuidado' ? '<path d="M10 3 2 17h16L10 3zm0 5v4m0 2v1"/>' : tipo==='correcto' ? '<path d="M3 10l4 4 10-9"/>' : tipo==='incorrecto' ? '<path d="M5 5l10 10M15 5 5 15"/>' : '<path d="M10 2a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9zM8 16h4"/>';
+    return '<div class="nota nota-'+tipo+'" role="status"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ico+'</svg><div><b>'+titulo+'</b><div class="cuerpo">'+cuerpo+'</div></div></div>';
+  }
+  var NEG = function(t){ return '<span class="neg">'+t+'</span>'; };
+
+  // hist[n] = { Q: estado tras n flancos, IE, I: entradas presentes antes del flanco n+1 }
+  var st = { tipo:'anillo', IE:1, I:1, hist:[] };
+  function reinicia(){ st.hist = [{ Q:[0,0,0,0], IE:st.IE, I:st.I }]; }
+  var actual = function(){ return st.hist[st.hist.length-1]; };
+  function entrada(Q, IE, I){ return st.tipo==='johnson' ? 1-Q[3] : (IE ? I : Q[3]); }
+  function siguiente(Q, IE, I){ return [entrada(Q, IE, I), Q[0], Q[1], Q[2]]; }
+  function flanco(){
+    var h = actual(), Q = siguiente(h.Q, h.IE, h.I);
+    st.hist.push({ Q:Q, IE:st.IE, I:st.I });
+  }
+
+  function andH(x, y){ return '<path class="puerta" d="M'+x+' '+y+'H'+(x+20)+'A20 20 0 0 1 '+(x+20)+' '+(y+40)+'H'+x+'Z"/>'; }
+  function orH(x, y){ return '<path class="puerta" d="M'+x+' '+y+'Q'+(x+14)+' '+(y+20)+' '+x+' '+(y+40)+'Q'+(x+30)+' '+(y+40)+' '+(x+46)+' '+(y+20)+'Q'+(x+30)+' '+y+' '+x+' '+y+'Z"/>'; }
+  function invArriba(x, y){ return '<path class="puerta" d="M'+(x-9)+' '+(y+16)+'H'+(x+9)+'L'+x+' '+y+'Z"/><circle class="burbuja" cx="'+x+'" cy="'+(y-5)+'" r="5"/>'; }
+
+  function circuito(){
+    var h = actual(), Q = h.Q, J = st.tipo==='johnson', O = Q[3], nO = 1-O;
+    var D1 = entrada(Q, h.IE, h.I);
+    var X = function(i){ return 240 + i*140; }, nx = X(3)+124;
+    var s = '<svg viewBox="0 0 880 300" style="min-width:700px" role="img" aria-label="'+(J ? 'Contador de Johnson: registro SISO de cuatro biestables D por flanco de bajada con la salida O negada realimentada a la entrada D del primero.' : 'Contador en anillo: registro SISO de cuatro biestables D por flanco de bajada; un selector con dos AND y una OR lleva al primero la entrada I si IE vale 1, o la salida O realimentada si IE vale 0.')+' Estado Q = '+Q.join('')+'.">';
+    // CLR negada
+    s += '<path class="cable v1" d="M'+(J?150:60)+' 62H'+(X(3)+50)+'"/><text class="etq" x="'+(J?96:6)+'" y="69">CLR</text><line class="raya" x1="'+(J?97:7)+'" y1="47" x2="'+(J?140:51)+'" y2="47"/>';
+    for (var i=0;i<4;i++) s += '<circle class="nudo v1" cx="'+(X(i)+50)+'" cy="62" r="3.5"/><path class="cable v1" d="M'+(X(i)+50)+' 62V84"/><circle class="burbuja" cx="'+(X(i)+50)+'" cy="89" r="5"/>';
+    // reloj
+    s += '<path class="cable v0" d="M'+(J?150:60)+' 278H'+(X(3)-25)+'"/><text class="etq" x="'+(J?120:30)+'" y="285">C</text>';
+    for (var i=0;i<4;i++) s += (i<3 ? '<circle class="nudo v0" cx="'+(X(i)-25)+'" cy="278" r="3.5"/>' : '') + '<path class="cable v0" d="M'+(X(i)-25)+' 278V205H'+(X(i)-11)+'"/><circle class="burbuja" cx="'+(X(i)-6)+'" cy="205" r="5"/>';
+    // biestables D
+    for (var i=0;i<4;i++){
+      s += '<rect class="caja-simb" x="'+X(i)+'" y="94" width="100" height="150"/><path class="raya" d="M'+X(i)+' 195L'+(X(i)+10)+' 205L'+X(i)+' 215"/>'
+        + '<text class="pin" x="'+(X(i)+8)+'" y="147">D</text><text class="pin" x="'+(X(i)+36)+'" y="114">CLR</text><text class="pin" x="'+(X(i)+16)+'" y="210">C</text><text class="pin" x="'+(X(i)+82)+'" y="147">Q</text>'
+        + '<text class="celda-bit '+v(Q[i])+'" x="'+(X(i)+50)+'" y="186" text-anchor="middle">'+Q[i]+'</text>';
+      if (i<3) s += '<path class="cable '+v(Q[i])+'" d="M'+(X(i)+100)+' 142H'+X(i+1)+'"/><text class="valor '+v(Q[i])+'" x="'+(X(i)+106)+'" y="132">Q'+'₁₂₃'[i]+'</text>';
+    }
+    // salida O
+    s += '<path class="cable '+v(O)+'" d="M'+(X(3)+100)+' 142H850"/><circle class="nudo '+v(O)+'" cx="'+nx+'" cy="142" r="3.5"/><text class="etq" x="856" y="149">O</text><text class="valor '+v(O)+'" x="'+(nx+(J?28:8))+'" y="'+(J?162:132)+'">'+O+'</text>';
+    if (J){
+      // realimentación negada: inversor sobre la salida, y vuelta a D del primero
+      s += '<path class="cable '+v(O)+'" d="M'+nx+' 142V118"/>' + invArriba(nx, 102)
+        + '<path class="cable '+v(nO)+'" d="M'+nx+' 92V24H210V142H'+X(0)+'"/>'
+        + '<text class="valor '+v(nO)+'" x="'+(nx+10)+'" y="80">O='+nO+'</text><line class="raya" x1="'+(nx+11)+'" y1="66" x2="'+(nx+21)+'" y2="66"/>';
+    } else {
+      var a1 = O & (1-h.IE), a2 = h.IE & h.I;
+      // realimentación O hasta la AND de arriba
+      s += '<path class="cable '+v(O)+'" d="M'+nx+' 142V24H100V98H120"/>';
+      // IE, su negación e I
+      s += '<path class="cable '+v(h.IE)+'" d="M20 168H120"/><circle class="nudo '+v(h.IE)+'" cx="80" cy="168" r="3.5"/><path class="cable '+v(h.IE)+'" d="M80 168V154"/>' + invArriba(80, 138)
+        + '<path class="cable '+v(1-h.IE)+'" d="M80 128V118H120"/>';
+      s += '<path class="cable '+v(h.I)+'" d="M20 188H120"/>';
+      s += '<text class="etq" x="0" y="164" style="font-size:16px">IE</text><text class="valor '+v(h.IE)+'" x="40" y="160">'+h.IE+'</text>'
+        + '<text class="etq" x="6" y="200" style="font-size:16px">I</text><text class="valor '+v(h.I)+'" x="40" y="204">'+h.I+'</text>';
+      s += andH(120, 88) + andH(120, 158);
+      s += '<path class="cable '+v(a1)+'" d="M160 108H172V132H184"/><path class="cable '+v(a2)+'" d="M160 178H172V152H184"/>';
+      s += orH(180, 122) + '<path class="cable '+v(D1)+'" d="M226 142H'+X(0)+'"/>';
+    }
+    $('circuito').innerHTML = s + '</svg>';
+  }
+
+  function ciclo(){
+    // recorre los estados que seguirán sin intervención externa (IE = 0) hasta repetir
+    var Q = actual().Q, vistos = [], k = Q.join('');
+    while (vistos.indexOf(k) < 0 && vistos.length < 20){ vistos.push(k); Q = siguiente(Q, 0, 0); k = Q.join(''); }
+    var desde = vistos.indexOf(k), html = '';
+    vistos.forEach(function(e, i){
+      if (i===desde && desde>0) html += '<span class="vuelta">ciclo:</span>';
+      html += '<span class="est'+(i===0?' actual':'')+'">'+e+'</span>' + (i<vistos.length-1 ? '<span class="fl">→</span>' : '');
+    });
+    html += '<span class="vuelta">↺ '+k+'</span>';
+    $('ciclo').innerHTML = html;
+    var n = vistos.length - desde;
+    $('ciclo-pie').innerHTML = n===1 ? 'El estado no cambia: el contador está parado en '+k+'.'
+      : 'El ciclo tiene <strong>'+n+' estados</strong>: la secuencia se repite cada '+n+' flancos'+(st.tipo==='anillo' && actual().IE ? ' (suponiendo que pongas IE = 0)' : '')+'.';
+  }
+
+  function cronograma(){
+    var J = st.tipo==='johnson', H = st.hist, P = H.length, ini = Math.max(0, P-16), N = 4*(P-ini), X0 = 60, W = 12, F = 46;
+    var filas = [['C',[],''],['CLR',[],'']];
+    if (!J) filas.push(['IE',[],''],['I',[],'']);
+    filas.push(['Q₁',[],'q'],['Q₂',[],'q'],['Q₃',[],'q'],['O',[],'o']);
+    for (var p=ini;p<P;p++) for (var q=0;q<4;q++){
+      var Q = q>=1 || p===0 ? H[p].Q : H[p-1].Q, ent = q>=1 || p===0 ? H[p] : H[p-1];
+      var col = [q>=2 ? 1 : 0, p===0 && q===0 ? 0 : 1];
+      if (!J) col.push(ent.IE, ent.I);
+      col.push(Q[0], Q[1], Q[2], Q[3]);
+      filas.forEach(function(f, r){ f[1].push(col[r]); });
+    }
+    var alto = filas.length*F + 6, ancho = X0 + 64*W + 10;
+    var s = '<svg viewBox="0 0 '+ancho+' '+alto+'" role="img" aria-label="Cronograma del '+(J?'contador de Johnson':'contador en anillo')+' con los flancos dados hasta ahora.">';
+    for (var p=0;p<P-1-ini;p++){ var x = X0 + 4*(p+1)*W; s += '<line class="guia-baja" x1="'+x+'" y1="0" x2="'+x+'" y2="'+alto+'"/>'; }
+    filas.forEach(function(f, r){
+      var top = r*F, Y = function(bit){ return bit ? top+8 : top+32; }, d = 'M'+X0+' '+Y(f[1][0]);
+      for (var j=0;j<N;j++){ if (j>0 && f[1][j]!==f[1][j-1]) d += 'V'+Y(f[1][j]); d += 'H'+(X0+(j+1)*W); }
+      s += '<text class="etq-fila" x="4" y="'+(top+26)+'">'+f[0]+'</text>' + (f[0]==='CLR' ? '<line class="raya" x1="5" y1="'+(top+10)+'" x2="40" y2="'+(top+10)+'"/>' : '');
+      s += '<path class="onda '+f[2]+'" d="'+d+'"/>';
+      if (r===0) for (var p=0;p<P-1-ini;p++) s += '<path class="flecha-baja" d="M'+(X0+4*(p+1)*W)+' '+(top+32)+'l-4 -8h8z"/>';
+    });
+    $('crono').innerHTML = s + '</svg>';
+  }
+
+  function notaTipo(){
+    $('nota-tipo').innerHTML = st.tipo==='johnson'
+      ? nota('idea', 'Contador de Johnson', 'Al realimentar ' + NEG('O') + ', el registro se llena de unos y luego de ceros: 0000 → 1000 → 1100 → 1110 → 1111 → 0111 → 0011 → 0001. Con <i>n</i> biestables recorre <strong>2<i>n</i> estados</strong>, el doble que el anillo, y no necesita que se le introduzca nada después de ' + NEG('CLR') + '.')
+      : nota('idea', 'Contador en anillo', 'Con un solo 1 dentro, cada flanco lo mueve un biestable y desde Q<sub>4</sub> vuelve a Q<sub>1</sub>: con <i>n</i> biestables hay <strong><i>n</i> estados</strong> y en <code>O</code> aparece un 1 cada <i>n</i> flancos. Ojo: después de ' + NEG('CLR') + ' el registro está a 0000 y, si no se introduce nada, se queda así para siempre.');
+  }
+
+  function pinta(msg){
+    var J = st.tipo==='johnson';
+    $('tipo').innerHTML = ['anillo','johnson'].map(function(t){ return '<button data-t="'+t+'" aria-pressed="'+(st.tipo===t)+'">'+(t==='anillo'?'Contador en anillo':'Contador de Johnson')+'</button>'; }).join('');
+    $('controles').innerHTML = J ? '' :
+      '<span class="grupo"><span class="rotulo">IE</span><button class="bitbtn'+(st.IE?' uno':'')+'" data-k="IE" aria-label="IE, vale '+st.IE+'">'+st.IE+'</button></span>'
+      + '<span class="grupo"><span class="rotulo">I</span><button class="bitbtn'+(st.I?' uno':'')+'" data-k="I" aria-label="I, vale '+st.I+'">'+st.I+'</button></span>';
+    $('controles').style.display = J ? 'none' : '';
+    $('acciones').innerHTML = '<button class="boton boton-reloj" id="b-flanco">Flanco de bajada de C</button><button class="boton" id="b-clr">Pulso de '+NEG('CLR')+'</button><button class="boton" id="b-leccion">Cronograma de la lección</button>';
+    circuito(); ciclo(); cronograma(); notaTipo();
+    $('aviso').innerHTML = msg || '';
+    $('tipo').querySelectorAll('button').forEach(function(b){ b.addEventListener('click', function(){
+      st.tipo = b.dataset.t; reinicia();
+      pinta(nota('idea', st.tipo==='johnson' ? 'Contador de Johnson' : 'Contador en anillo', st.tipo==='johnson' ? 'Registro a 0000. Da flancos: como ' + NEG('O') + ' = 1, el primer biestable empieza a llenarse de unos.' : 'Registro a 0000. Con IE = 1 e I = 1, el primer flanco introduce un 1; luego pon IE = 0 para que gire.'));
+      $('tipo').querySelector('[data-t="'+st.tipo+'"]').focus();
+    }); });
+    $('controles').querySelectorAll('.bitbtn').forEach(function(b){ b.addEventListener('click', function(){
+      var k = b.dataset.k; st[k] = 1 - st[k]; actual().IE = st.IE; actual().I = st.I;
+      pinta(k==='IE' ? (st.IE ? nota('idea', 'IE = 1: entra I', 'En el próximo flanco el primer biestable tomará el valor de I ('+st.I+'), no el de la realimentación.') : nota('idea', 'IE = 0: el anillo se cierra', 'El primer biestable toma la salida O: lo que haya dentro del registro gira sin fin.')) : $('aviso').innerHTML);
+      $('controles').querySelector('[data-k="'+k+'"]').focus();
+    }); });
+    $('b-flanco').addEventListener('click', function(){
+      var antes = actual(); flanco(); var Q = actual().Q, n = st.hist.length-1;
+      var de = st.tipo==='johnson' ? NEG('O')+' = '+(1-antes.Q[3]) : antes.IE ? 'I = '+antes.I : 'O = '+antes.Q[3];
+      pinta(nota('idea', 'Flanco '+n, 'El primer biestable ha tomado '+de+' y los demás han avanzado un puesto: Q = '+Q.join(' ')+'. En O hay un '+Q[3]+'.'
+        + (st.tipo==='anillo' && antes.IE && st.IE ? ' Pon IE = 0 para cerrar el anillo.' : '')));
+      $('b-flanco').focus();
+    });
+    $('b-clr').addEventListener('click', function(){ reinicia(); pinta(nota('idea', 'Registro a cero', 'El pulso de '+NEG('CLR')+' ha puesto los cuatro biestables a 0 sin esperar al reloj.')); $('b-clr').focus(); });
+    $('b-leccion').addEventListener('click', function(){ leccion(); $('b-leccion').focus(); });
+  }
+
+  function leccion(){
+    // como en la lección: tras CLR, IE = I = 1 durante el primer flanco y luego 0; 15 flancos
+    if (st.tipo==='anillo'){ st.IE = 1; st.I = 1; }
+    reinicia();
+    for (var n=0;n<15;n++){
+      flanco();
+      if (st.tipo==='anillo' && n===0){ st.IE = 0; st.I = 0; actual().IE = 0; actual().I = 0; }
+    }
+    pinta(nota('idea', '15 flancos, como en la lección', st.tipo==='anillo'
+      ? 'Tras ' + NEG('CLR') + ', con IE = I = 1 el primer flanco mete un 1; después IE = I = 0 y el 1 gira: O vale 1 tras los flancos 4, 8 y 12.'
+      : 'Desde 0000 el contador recorre sus 8 estados: O vale 1 durante 4 flancos y 0 durante otros 4.'));
+  }
+
+  reinicia();
+  pinta(nota('idea', 'Empieza aquí', 'El registro está a 0000 tras ' + NEG('CLR') + '. Con IE = 1 e I = 1, da un flanco para introducir el 1, pon IE = 0 y sigue dando flancos: el 1 dará vueltas. O pulsa <strong>Cronograma de la lección</strong>.'));
+
+  var PREG = [
+    { q:'¿Qué se obtiene si se realimenta la salida de un registro de desplazamiento SISO a su entrada?', ops:['Un registro PIPO','Un contador en anillo','Un contador de Johnson'], ok:1, exp:'Llevando O a la entrada del primer biestable, lo que hay dentro gira sin fin: es un contador en anillo. Si lo que se realimenta es O negada, es un contador de Johnson.' },
+    { q:'En el contador en anillo de la lección, ¿para qué sirve <code>IE</code>?', ops:['Para habilitar el reloj','Para elegir si al primer biestable llega la entrada I o la realimentación O','Para poner el contador a cero'], ok:1, exp:'Con IE = 1 la AND de abajo deja pasar I; con IE = 0 pasa la AND de arriba, que lleva la salida O. Así se introduce el 1 inicial y luego se cierra el anillo.' },
+    { q:'Un anillo de 4 biestables tiene un solo 1 dentro. ¿Cada cuántos flancos aparece un 1 en <code>O</code>?', ops:['2','4','8'], ok:1, exp:'El 1 avanza un biestable por flanco y tarda 4 flancos en dar la vuelta: en el cronograma de la lección, O vale 1 tras los flancos 4, 8 y 12.' },
+    { q:'Tras un pulso de <span class="neg">CLR</span>, ¿qué hace el contador en anillo si no se introduce nada?', ops:['Cuenta igualmente','Se queda en 0000 para siempre','Pasa a 1111'], ok:1, exp:'Con todos los biestables a 0, lo que se realimenta es un 0: el registro sigue a 0000. Por eso hace falta IE e I para meter el 1.' },
+    { q:'¿Cuántos estados distintos recorre un contador de Johnson de 4 biestables?', ops:['4','8','16'], ok:1, exp:'Se llena de unos (0000 → 1000 → 1100 → 1110 → 1111) y luego de ceros (0111 → 0011 → 0001 → 0000): 2n = 8 estados.' }
+  ];
+  var Rt = $('reto');
+  PREG.forEach(function(p, i){
+    var div = document.createElement('div'); div.className = 'pregunta';
+    div.innerHTML = '<div><span class="etiqueta etiqueta-neutra">Pregunta '+(i+1)+'</span></div><div>'+p.q+'</div><div class="opciones" role="group" aria-label="Opciones de la pregunta '+(i+1)+'">'+p.ops.map(function(o,j){ return '<button class="boton" data-j="'+j+'" aria-pressed="false">'+o+'</button>'; }).join('')+'</div><div class="feedback"></div>';
+    Rt.appendChild(div);
+    div.querySelectorAll('.opciones .boton').forEach(function(b2){
+      b2.addEventListener('click', function(){
+        div.querySelectorAll('.opciones .boton').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+        b2.setAttribute('aria-pressed','true');
+        var ok = +b2.dataset.j === p.ok;
+        div.querySelector('.feedback').innerHTML = nota(ok?'correcto':'incorrecto', ok?'Correcto':'Incorrecto', p.exp);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
