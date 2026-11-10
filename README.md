@@ -25,3 +25,4 @@ Web: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
 | [contador-biestables-t.html](contador-biestables-t.html) | 6.4 · Contador con biestables T: ascendente, descendente, DEC/INC con XOR y retardo de propagación |
 | [modulo-contador.html](modulo-contador.html) | 6.4.1 · Módulo del contador: de 10 a 0 con NAND y CLEAR, y diseñador de contadores |
 | [contadores-sincronos.html](contadores-sincronos.html) | 6.4.2 · Contadores síncronos: JK con AND y reloj común |
+| [contador-decodificador.html](contador-decodificador.html) | 6.4.3 · Contador y decodificador: etapas en secuencia y picos del contador encadenado |
