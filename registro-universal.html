@@ -297,12 +297,13 @@ tr.nuevo td { animation:aparece 600ms ease-out; }
   function inv(x, y){ return '<path class="puerta" d="M'+(x-8)+' '+y+'H'+(x+8)+'L'+x+' '+(y+16)+'Z"/><circle class="burbuja" cx="'+x+'" cy="'+(y+21)+'" r="5"/>'; }
 
   function circuito(){
-    var V = valores(), SP = st.SP, nSP = 1-SP, Cef = st.CE;
+    // C está en reposo a 0 entre flancos, así que la AND de C y CE da 0
+    var V = valores(), SP = st.SP, nSP = 1-SP, Cef = 0;
     var X = function(i){ return 110 + i*165; };
     var s = '<svg viewBox="0 0 840 530" style="min-width:720px" role="img" aria-label="Registro de desplazamiento universal: el registro PISO de biestables RS con las salidas de cada etapa, O3 a O0, sacadas al exterior.">';
     // buses
     s += '<path class="cable '+v(SP)+'" d="M60 50H'+(X(3)+70)+'"/><text class="etq" x="6" y="56">S/P</text><line class="raya" x1="21" y1="38" x2="32" y2="38"/>';
-    s += '<path class="cable v1" d="M60 262H'+(X(3)+110)+'"/><text class="etq" x="6" y="268">CLR</text><line class="raya" x1="7" y1="250" x2="44" y2="250"/>';
+    s += '<path class="cable v1" d="M60 262H'+(X(3)+120)+'"/><text class="etq" x="6" y="268">CLR</text><line class="raya" x1="7" y1="250" x2="44" y2="250"/>';
     s += '<path class="cable '+v(Cef)+'" d="M100 440H'+(X(3)+62)+'"/>';
     // AND de habilitación del reloj (C · CE)
     s += '<path class="cable v0" d="M20 428H50"/><path class="cable '+v(st.CE)+'" d="M20 452H50"/>'
@@ -331,9 +332,9 @@ tr.nuevo td { animation:aparece 600ms ease-out; }
         + '<circle class="nudo '+v(Cef)+'" cx="'+(x+62)+'" cy="440" r="3.5"/><path class="cable '+v(Cef)+'" d="M'+(x+62)+' 440V345H'+(x+70)+'"/>'
         + '<text class="celda-bit '+v(q)+'" x="'+(x+130)+'" y="378" text-anchor="middle">'+q+'</text>';
       // salida Q hacia la etapa siguiente o hacia O
-      if (i<3) s += '<path class="cable '+v(q)+'" d="M'+(x+160)+' 300H'+(x+170)+'V84H'+(X(i+1)+10)+'V100"/>';
+      if (i<3) s += '<path class="cable '+v(q)+'" d="M'+(x+160)+' 300H'+(X(i+1)-2)+'V88H'+(X(i+1)+10)+'V100"/>';
       else s += '<path class="cable '+v(q)+'" d="M'+(x+160)+' 300H830"/><text class="etq" x="'+(x+175)+'" y="292">O</text>';
-      var xt = i<3 ? x+170 : x+180;
+      var xt = i<3 ? X(i+1)-2 : x+180;
       s += '<circle class="nudo '+v(q)+'" cx="'+xt+'" cy="300" r="3.5"/><path class="cable '+v(q)+'" d="M'+xt+' 300V500"/><text class="etq-o" x="'+(xt-10)+'" y="522">O'+SUB[3-i]+'</text><text class="valor '+v(q)+'" x="'+(xt+6)+'" y="490">'+q+'</text>';
     }
     $('circuito').innerHTML = s + '</svg>';
