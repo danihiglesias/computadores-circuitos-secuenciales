@@ -27,3 +27,4 @@ Web: https://danihiglesias.github.io/computadores-circuitos-secuenciales/
 | [contadores-sincronos.html](contadores-sincronos.html) | 6.4.2 · Contadores síncronos: JK con AND y reloj común |
 | [contador-decodificador.html](contador-decodificador.html) | 6.4.3 · Contador y decodificador: etapas en secuencia y picos del contador encadenado |
 | [contadores-registros-desplazamiento.html](contadores-registros-desplazamiento.html) | 6.4.4 · Contadores con registros de desplazamiento: contador en anillo y contador de Johnson |
+| [contadores-cuenta-arbitraria.html](contadores-cuenta-arbitraria.html) | 6.4.5 · Contadores de cuenta arbitraria: diseño de un contador síncrono módulo 5 con JK y mapas de Karnaugh |
